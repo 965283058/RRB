@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>菜单管理</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-style.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-icon.css">
+    <script type="text/javascript" src="../../public/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/extend.js"></script>
+
+    <style>
+        .dialog-button {
+            text-align: center;
+        }
+
+        .dialog-button a {
+            margin: auto 20px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="searchBox">
+    <div>
+        菜单名称:
+        <input type="text" class="searchVal" id="name"/>
+    </div>
+    <div>
+        <button class="hk-btn search" id="btnSearch">搜索
+        </button>
+        <button class="hk-btn reset" id="btnReset">重置
+        </button>
+    </div>
+</div>
+<table id="dg"></table>
+
+<script>
+
+    $(function () {
+
+        var dgHeight = $(document).height() - 60;
+
+        $("#btnSearch").click(function () {
+            var name = $("#name").val();
+            showList({
+                "name": name
+            });
+        }).click();
+
+        $("#btnReset").click(function () {
+            $("#searchVal").val('');
+        })
+
+        function showList(data) {
+            data = data || {};
+            var dg = $('#dg');
+            dg.treegrid({
+                rownumbers: true,
+                animate: true,
+                collapsible: true,
+                height: dgHeight,
+                loadMsg: '加载中...',
+                singleSelect: true,
+                remoteSort: true,
+                sortName: 'createTime',
+                url: '/manage/menu/list',
+                queryParams: data,
+                idField: '_id',
+                treeField: 'text',
+                columns: [[
+                    {
+                        field: '_id',
+                        title: 'ID',
+                        width: '14%',
+                        align: 'center',
+                        sortable: true
+                    },
+                    {
+                        field: 'text',
+                        title: '菜单名称',
+                        width: '12%',
+                        halign: 'center',
+                        sortable: true
+                    },
+                    {
+                        field: 'href',
+                        title: '菜单路径',
+                        width: '15%',
+                        halign: 'center',
+                        sortable: true
+                    },
+                    {
+                        field: 'iconCls',
+                        title: '菜单图标',
+                        width: '12%',
+                        halign: 'center',
+                        sortable: true
+                    },
+                    {
+                        field: 'status',
+                        title: '状态',
+                        width: '7%',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return value ? "正常" : "已禁用";
+                        },
+                    },
+                    {
+                        field: 'creator',
+                        title: '创建人',
+                        width: '11%',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            if (typeof value == "object") {
+                                return value.email
+                            }
+                        }
+                    },
+                    {
+                        field: 'createTime',
+                        title: '创建时间',
+                        width: '14%',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return $.converToCNDate(value);
+                        }
+                    },
+                    {
+                        field: 'edit',
+                        title: '编辑',
+                        width: '7%',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            return '<a href="#" class="gridCellBtn" onclick="edit(\'' + encodeURIComponent(JSON.stringify(row)) + '\')">编辑<a>';
+                        }
+                    },
+                    {
+                        field: 'cz',
+                        title: '操作',
+                        width: '7%',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            return '<a href="#" class="gridCellBtn" onclick="changStatus(\'' + row._id + '\',\'' + row.status + '\')">' + (   row.status ? "禁用" : "启用") + '<a>';
+                        }
+                    }
+                ]],
+                emptyMessage: "没有符合条件的记录",
+                toolbar: [{
+                    iconCls: 'hk-icon-edit',
+                    handler: function () {
+                        edit(null)
+                    },
+                    text: "增加菜单",
+                }],
+                loadFilter: function (data, parentId) {
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (data.rows[i]._parentId == "") {
+                            delete  data.rows[i]._parentId;
+                        }
+                    }
+                    return data;
+                }
+            });
+        }
+
+    })
+
+    function edit(row) {
+        $.createOnlyDiv("dialog-add");
+        if (row) {
+            row = JSON.parse(decodeURIComponent(row));
+        }
+        $("#dialog-add").dialog({
+            title: (row ? "【编辑菜单】" : "【增加菜单】"),
+            width: 520,
+            height: 300,
+            closed: false,
+            closable: true,
+            content: $("#menuTemplate").html(),
+            cache: false,
+            modal: true,
+            buttons: [{
+                text: '保存',
+                handler: function () {
+                    var menuForm = $("#dialog-add").find("form[name=menuForm]");
+                    var postUrl = "/manage/menu/add";
+                    var params = menuForm.serializeJson();
+                    if (row) {
+                        postUrl = "/manage/menu/edit";
+                        params.id = row._id;
+                    }
+                    if (menuForm.form("validate")) {
+                        $.modalWait('open', {"msg": "处理中，请稍等..."});
+                        $.ajax({
+                            url: postUrl,
+                            type: "post",
+                            data: params,
+                            succ: function (data) {
+                                $("#dialog-add").dialog("destroy");
+                                if (data.message) {
+                                    $.messager.alert("【消息通知】", "添加成功", "info");
+                                } else {
+                                    $.messager.alert("【消息通知】", "操作成功!", "OK");
+                                }
+                                $('#dg').treegrid("reload")
+                            },
+                            complete: function (res) {
+                                $.modalWait('close');
+                            }
+                        })
+                    }
+                }
+            }, {
+                text: '关闭',
+                handler: function () {
+                    $("#dialog-add").dialog("destroy")
+                }
+            }],
+            onOpen: function () {
+                var that = $(this);
+                that.find("input[name=text]").validatebox({
+                    required: true,
+                    missingMessage: "菜单名称不可为空",
+                    validateOnCreate: false,
+                    width: 400
+                })
+                that.find("input[name=parentId]").combotree({
+                    required: true,
+                    missingMessage: "请选择父级菜单",
+                    validateOnCreate: false,
+                    editable: false,
+                    width: 400,
+                    value: "",
+                    queryParams: {"parentId": 1},
+                    url: '/manage/menu/getTreeMenu',
+                    onChange: function (newValue, oldValue) {
+                        if (!newValue) {
+                            that.find("input[name=icon]").validatebox("enableValidation");
+                            that.find("input[name=href]").validatebox("disableValidation");
+                        } else {
+                            that.find("input[name=icon]").validatebox("disableValidation");
+                            that.find("input[name=href]").validatebox("enableValidation");
+                        }
+                    }
+                })
+                var t = that.find("input[comboname=parentId]").combotree('tree');	// 获取树对象
+                var n = t.tree({
+                    loadFilter: function (data) {
+                        data.splice(0, 0, {"id": "", "text": "无"});
+                        return data;
+                    }
+                });
+                that.find("input[name=icon]").validatebox({
+                    required: true,
+                    missingMessage: "菜单图标不可为空",
+                    validateOnCreate: false,
+                    width: 400
+                })
+                that.find("input[name=href]").validatebox({
+                    required: true,
+                    missingMessage: "菜单路径不可为空",
+                    validateOnCreate: false,
+                    novalidate: true,
+                    width: 400
+                })
+
+                if (row) {
+                    that.find("input[name=text]").val(row.text);
+                    that.find("input[comboname=parentId]").combotree("setValue", row._parentId);
+                    that.find("input[name=icon]").val(row.iconCls);
+                    that.find("input[name=href]").val(row.href);
+                    that.find("input[name=status]").prop("checked", row.status == 1)
+                }
+            }
+        })
+    }
+
+    function changStatus(id, status) {
+        $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该菜单吗？", function (r) {
+            if (r) {
+                $.ajax({
+                    url: "/manage/menu/changeStatus",
+                    type: "post",
+                    data: {"id": id},
+                    succ: function (res) {
+                        $.messager.alert("提示", (status == "0" ? "启用" : "禁用") + "成功", "info");
+                        $("#dg").treegrid("reload");
+                    }
+                })
+            }
+        })
+    }
+</script>
+<script id="menuTemplate" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="menuForm">
+            <table border="0">
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>菜单名称:</td>
+                    <td><input type="text" name="text"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>所属父级:</td>
+                    <td><input type="text" name="parentId"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>菜单图标:</td>
+                    <td><input type="text" name="icon"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>菜单路径:</td>
+                    <td><input type="text" name="href"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品状态:</td>
+                    <td><label><input type="checkbox" checked="checked" value="1" name="status"/>是否立刻启用</label>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+</body>
+</html>

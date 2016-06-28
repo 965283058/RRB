@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <link rel="stylesheet" type="text/css" href="../public/stylesheets/bootstrap.min.css"/>
+    <script type="text/javascript" src="../public/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="../public/javascripts/jquery.easyui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../public/stylesheets/animate.css">
+    <title>登录</title>
+    <style>
+        .article {
+            background: url(images/heika.jpg) no-repeat center;
+            position: absolute;
+            top: 0px;
+            bottom: 0px;
+            overflow: auto;
+            width: 100%;
+            background-size: cover;
+        }
+
+        .content {
+            width: 400px;
+        }
+
+        .testPosition {
+            position: absolute;
+            left: 65%;
+            top: 10%;
+        }
+
+        .loginTitle {
+            color: #a8a8a8;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .loginInput {
+            width: 80%;
+            margin: 0 auto;
+            background-color: #757575;
+            color: #e0b96e;
+        }
+
+        .loginButton {
+            background: #24272e;
+            margin-bottom: 25px;
+            color: #e0b96e;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .usernamePar, .passwordPar {
+            position: relative;
+        }
+
+        .errorStyle {
+            width: 320px;
+            height: 34px;
+            margin-top: 10px;
+            margin-left: 40px;
+            display: none;
+            font-size: 14px;
+            color: #e0b96e;
+        }
+    </style>
+</head>
+<body>
+
+<div class="article">
+    <div class="content  testPosition">
+        <p class="h3  loginTitle">黑卡审核系统</p>
+
+        <p class="form-group  usernamePar">
+            <input type="text" style="border-radius: 0; border:0;"
+                   class="form-control  loginInput   " placeholder="请输入用户名"
+                   value="jiangpeng@heika.com" id="username"/>
+        </p>
+
+        <p class="form-group passwordPar"><input type="password" style="border-radius: 0;border:0; "
+                                                 class="form-control  loginInput" placeholder="请输入密码" value="jiangpeng@heika.com"
+                                                 id="password">
+        </p>
+
+        <p class="errorStyle"></p>
+
+        <p class="form-group">
+            <button type="button" style="border-radius: 0; border:0;" class="form-control loginInput loginButton"
+                    id="loginCheck">登录
+            </button>
+
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
+<script>
+    $(function () {
+        $("input").on('mousedown keydown', function () {
+            $(".errorStyle").css("display", "none");
+        });
+        $("#loginCheck").click(function () {
+            checkPassword();
+        });
+        document.onkeydown = function (event) {
+            var event = event || window.event;
+            if (event.keyCode == 13) {
+                checkPassword();
+            }
+        };
+    });
+
+    function login() {
+        $.ajax({
+            url: '/manage/user/login',
+            type: "post",
+            data: {
+                "username": $("#username").val(),
+                "pwd": $("#password").val()
+            },
+            dataType: "json",
+            success: function (data) {
+                if (data.user) {
+                    window.location.href = "index.html";
+                } else {
+                    $(".errorStyle").removeClass("animated  shake")
+                    setTimeout(function(){
+                        $(".errorStyle").css("display", "block").html(data.message).addClass("animated  shake");
+                    },20)
+                }
+            },
+            error: function () {
+                $.messager.alert('提示', '网络异常请检查网络');
+            }
+        });
+    }
+
+    function checkPassword() {
+        if ($("#username").val() !== "" && $("#password").val() !== "") {
+            login();
+        } else {
+            for (var i = 0, len = $("input").length; i < len; i++) {
+                if ($("input").eq(i).val() == "") {
+                    $(".errorStyle").html("用户名和密码不能为空").css("display", "block").addClass("animated  shake");
+                }
+            }
+        }
+    }
+
+
+</script>

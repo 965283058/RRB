@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../public/javascripts/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../public/javascripts/themes/icon.css">
+
+    <link rel="stylesheet" type="text/css" href="css/layout.css">
+    <script type="text/javascript" src="../public/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="../public/javascripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="js/extend.js"></script>
+    <script type="text/javascript" src="js/tree.js"></script>
+    <title>人人币交易后台管理系统</title>
+</head>
+<style>
+    .panel.window.messager-window .panel-tool {
+        display: none;
+    }
+</style>
+<body class="easyui-layout">
+<div data-options="region:'north',title:'North Title',split:true, noheader:true" class="header gradualChange">
+
+    <p class="h2  indexTitle">&nbsp;</p>
+
+    <p class="indexAdmin">
+        <span>欢迎你，<i id="adminerName"></i></span>
+        <span><a href="resetPassword.html">修改密码</a></span>
+        <span><a href="javascript:;" onclick={loginoutSure();}>退出</a></span>
+    </p>
+</div>
+<!--<div data-options="region:'south',title:'South Title',split:true,noheader:true" class="footer">-->
+<!--黑卡后台管理中心-->
+<!--</div>-->
+
+
+<div data-options="region:'west',title:'菜单栏',split:true" class="left">
+    <!-- 加载树形菜单-->
+    <ul id="navTree" class="navStyle"></ul>
+</div>
+
+<!-- 中间页面 -->
+<div data-options="region:'center' " class="center">
+    <div id="main-center" class="easyui-tabs" fit="true" border="false">
+        <div title="首页" style="padding: 20px;height: 100%;">
+            <div style="margin-top: 20px;">
+                <p>欢迎使用人人贷黑卡系统</p>
+                <p>&nbsp;</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    function logout() {
+        $.ajax({
+            url: "/manage/user/logout",
+            type: "post",
+            succ: function (res) {
+                window.parent.location.href = 'login.html';
+            },
+            error: function () {
+                console.log('登出异常');
+            }
+        });
+//        window.location.href = 'login.html'
+    }
+
+    function loginoutSure() {
+        $.messager.confirm('提示:', '你确认退出人人币管理系统吗?', function (event) {
+            if (event) {
+                logout();
+            }
+        });
+    }
+
+    function closeTab(which) {
+        var tabs = $('#main-center');
+        var tab = which === undefined ? tabs.tabs('getSelected') : tabs.tabs('getTab', which);
+        tabs.tabs('close', tabs.tabs('getTabIndex', tab));
+    }
+</script>

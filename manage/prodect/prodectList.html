@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品管理</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-style.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-icon.css">
+    <script type="text/javascript" src="../../public/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/extend.js"></script>
+    <script type="text/javascript" src="../js/previewImgage.js"></script>
+
+
+    <style>
+        .dialog-button {
+            text-align: center;
+        }
+
+        .dialog-button a {
+            margin: auto 20px;
+        }
+
+        .imgBox img {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="searchBox clear">
+    <div>
+        商品名称:
+        <input type="text" class="searchVal" id="name"/>
+    </div>
+    <div>
+        商品分类:
+        <select id="catrgory">
+            <option value="">全部分类</option>
+        </select>
+    </div>
+    <div>商品状态:
+        <select id="status" class="easyui-combobox" data-options="width:100,panelHeight:100,editable:false">
+            <option value="">全部</option>
+            <option value="0">下架</option>
+            <option value="1">正常</option>
+        </select>
+    </div>
+    <div>添加时间:
+        <input type="text" id="beginDate" class="easyui-datebox" data-options="width:110,editable:false"/>—<input
+                type="text" id="endDate" class="easyui-datebox" data-options="width:110,editable:false"/>
+    </div>
+    <div>
+        <button class="hk-btn search" id="btnSearch">搜索
+        </button>
+        <button class="hk-btn reset" id="btnReset" style="background-position: 2px 2px">重置
+        </button>
+    </div>
+</div>
+<table id="dg"></table>
+
+<script>
+
+    $(function () {
+
+        var dgHeight = $(document).height() - 60;
+
+        $("#catrgory").combobox({
+            width: 150,
+            panelHeight: 300,
+            editable: false,
+            url: '/manage/category/getCategory',
+            valueField: "_id",
+            textField: "categoryName",
+            loadFilter: function (data) {
+                data.splice(0, 0, {"_id": "", "categoryName": "全部"});
+                return data;
+            }
+        })
+
+        $("#btnSearch").click(function () {
+            var name = $("#name").val();
+            var catrgory = $("#catrgory").combobox('getValue');
+            var status = $("#status").combobox('getValue');
+            var beginDate = $("#beginDate").datebox('getValue');
+            var endDate = $("#endDate").datebox('getValue');
+            showList({
+                "name": name,
+                "categoryId": catrgory,
+                "status": status,
+                "beginDate": beginDate,
+                "endDate": endDate
+            });
+        }).click();
+
+        $("#btnReset").click(function () {
+            $("#searchVal").val('');
+        })
+
+        function showList(data) {
+            data = data || {};
+            var dg = $('#dg');
+            dg.datagrid({
+                pagination: true,
+                height: dgHeight,
+                pageSize: 50,
+                pageList: [10, 20, 50, 100, 200],
+                loadMsg: '加载中...',
+                singleSelect: true,
+                remoteSort: true,
+                sortName: 'createTime',
+                url: '/manage/prodect/list',
+                queryParams: data,
+                columns: [[
+                    {
+                        field: 'number',
+                        title: '序号',
+                        width: '60',
+                        align: 'center'
+                    },
+                    {
+                        field: 'id',
+                        title: 'ID',
+                        hidden: true
+                    },
+                    {
+                        field: 'prodectName',
+                        title: '商品名称',
+                        width: '250',
+                        halign: 'center',
+                        sortable: true
+                    },
+                    {
+                        field: 'categoryId',
+                        title: '类别名称',
+                        width: '200',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return value.categoryName;
+                        },
+                    },
+                    {
+                        field: 'price',
+                        title: '价格',
+                        width: '80',
+                        halign: 'center',
+                        align: 'right',
+                        sortable: true
+                    },
+                    {
+                        field: 'stock',
+                        title: '库存',
+                        width: '80',
+                        halign: 'center',
+                        align: 'right',
+                        sortable: true
+                    },
+                    {
+                        field: 'img',
+                        title: '图片',
+                        width: '100',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            return '<a href="#" onclick="imageList(\'' + encodeURIComponent(JSON.stringify(row)) + '\')" class="gridCellBtn" >预览图片<a>';
+                        },
+                    },
+                    {
+                        field: 'status',
+                        title: '状态',
+                        width: '60',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return value ? "正常" : "已下架";
+                        },
+                    },
+                    {
+                        field: 'creator',
+                        title: '操作人',
+                        width: '180',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            if (typeof  value == 'object') {
+                                return value.email;
+                            }
+                        }
+                    },
+                    {
+                        field: 'createTime',
+                        title: '操作时间',
+                        width: '135',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return $.converToCNDate(value);
+                        }
+                    },
+                    {
+                        field: 'lastEidtor',
+                        title: '最后操作人',
+                        width: '180',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            if (typeof  value == 'object') {
+                                return value.email;
+                            }
+                        }
+                    },
+                    {
+                        field: 'lastEidtTime',
+                        title: '最后操作时间',
+                        width: '135',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return $.converToCNDate(value);
+                        }
+                    },
+                    {
+                        field: 'cz',
+                        title: '操作',
+                        width: '100',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            return '<a href="#" class="gridCellBtn" onclick="changStatus(\'' + row._id + '\',\'' + row.status + '\')">' + (   row.status ? "下架" : "重新上架") + '<a>';
+                        }
+                    },
+                    {
+                        field: 'add',
+                        title: '增加库存',
+                        width: '100',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            return '<a href="#" class="gridCellBtn" onclick="addStock(\'' + row._id + '\')">增加库存<a>';
+                        }
+                    }, {
+                        field: 'changeStock',
+                        title: '调整库存',
+                        width: '100',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            return '<a href="#" class="gridCellBtn" onclick="changeStock(\'' + row._id + '\')">调整库存<a>';
+                        }
+                    },
+                    {
+                        field: 'edit',
+                        title: '编辑商品',
+                        width: '100',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            return '<a href="#" onclick="edit(\'' + row._id + '\')" class="gridCellBtn">编辑<a>';
+                        }
+                    }
+                ]],
+                emptyMessage: "没有符合条件的记录",
+                toolbar: [{
+                    iconCls: 'hk-icon-edit',
+                    handler: add,
+                    text: "添加商品",
+                }],
+                rowStyler: function (index, row) {
+                    if (row.stock <= 0) {
+                        return "background-color:#FFA8A8";
+                    }
+                }
+            });
+
+            dg.datagrid("getPanel").find(".datagrid-header-check input").hide();
+            dg.datagrid('getPager').find('.pagination-num').width(40);
+            dg.datagrid('getPager').find('.pagination-page-list').before('&nbsp;&nbsp;每页显示').after('记录').parent('td').css('line-height', '25px')
+        }
+
+        $.extend($.fn.validatebox.defaults.rules, {
+            categoryId: {
+                validator: function (value) {
+                    var val = $("#dialog-add").find("input[comboname=category]").combobox("getValue");
+                    return val.length > 0;
+                },
+                message: 'Please enter at least {0} characters.'
+            }
+        });
+
+        function add() {
+            $.createOnlyDiv("dialog-add");
+            $("#dialog-add").dialog({
+                title: '【增加商品】',
+                width: 520,
+                height: 400,
+                closed: false,
+                closable: true,
+                content: $("#prodectTemplate").html(),
+                cache: false,
+                modal: true,
+                buttons: [{
+                    text: '保存',
+                    handler: function () {
+                        var prodectForm = $("#dialog-add").find("form[name=prodectForm]");
+                        if (prodectForm.form("validate")) {
+
+                            var fileBox = $("#dialog-add").find("input[textboxname=imgFile]");
+                            if (!fileBox.filebox("getValue")) {
+                                return $.messager.alert("提示", "请选择要上传的文件!", "warning")
+                            }
+                            var files = $("#dialog-add").find("input[type=file]")[0].files;
+
+                            var fd = new FormData();
+
+                            for (var i = 0; i < files.length; i++) {
+                                fd.append("imgFile", files[i]);
+                            }
+
+                            var formData = prodectForm.serializeJson();
+                            for (var k in formData) {
+                                if (k != "imgFile") {
+                                    fd.append(k, formData[k]);
+                                }
+                            }
+
+
+                            $.modalWait('open', {"msg": "处理中，请稍等..."});
+                            $.ajax({
+                                url: '/manage/prodect/add',
+                                type: "post",
+                                data: fd,
+                                processData: false,
+                                contentType: false,
+                                succ: function (data) {
+                                    $("#dialog-add").dialog("destroy");
+                                    if (data.message) {
+                                        $.messager.alert("【消息通知】", "添加成功", "info");
+                                    } else {
+                                        $.messager.alert("【消息通知】", "操作成功!", "OK");
+                                    }
+                                    showList();
+                                },
+                                complete: function (res) {
+                                    $.modalWait('close');
+                                }
+                            })
+                        }
+                    }
+                }, {
+                    text: '关闭',
+                    handler: function () {
+                        $("#dialog-add").dialog("destroy")
+                    }
+                }],
+                onOpen: function () {
+                    var that = $(this);
+                    that.find("input[name=name]").validatebox({
+                        required: true,
+                        missingMessage: "商品名称不可为空",
+                        validateOnCreate: false,
+                        width: 400
+                    })
+                    that.find("input[name=category]").combobox({
+                        required: true,
+                        missingMessage: "请选择商品分类",
+                        validType: 'categoryId',
+                        invalidMessage: "请选择商品分类",
+                        validateOnCreate: false,
+                        editable: false,
+                        width: 400,
+                        url: '/manage/category/getCategory',
+                        valueField: "_id",
+                        textField: "categoryName",
+                        loadFilter: function (data) {
+                            data.splice(0, 0, {"_id": "", "categoryName": "请选择"});
+                            return data;
+                        },
+                        onChange: function (newValue, oldValue) {
+                            var price = that.find("input[numberboxname=price]").numberbox("getValue");
+                            if (!price && newValue) {
+                                var data = $(this).combobox("getData");
+                                for (var i = 0; i < data.length; i++) {
+                                    if (data[i]._id == newValue) {
+                                        that.find("input[numberboxname=price]").numberbox("setValue", data[i].categoryPrice)
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    })
+
+                    that.find("input[name=price]").numberbox({
+                        required: true,
+                        missingMessage: "商品价格不能为空",
+                        min: 0,
+                        precision: 2,
+                        validateOnCreate: false,
+                        width: 400
+                    })
+                    that.find("input[name=stock]").numberbox({
+                        required: true,
+                        missingMessage: "商品数量不能为空",
+                        min: 0,
+                        validateOnCreate: false,
+                        width: 400
+                    });
+                    that.find("input[name=imgFile]").filebox({
+                        required: true,
+                        validateOnCreate: false,
+                        missingMessage: "商品图片不能为空",
+                        width: 400,
+                        buttonIcon: 'hk-icon-improt',
+                        iconAlign: 'left',
+                        buttonAlign: 'left',
+                        buttonText: '选择文件',
+                        prompt: '未选择任何文件',
+                        multiple: true
+                    });
+
+                    var typeArray = [".jpg", ".jpeg", ".png", ".bmp"];
+                    that.find("input[type=file]").attr("accept", typeArray.join(","));
+                    that.on("change", "input[type=file]", function () {
+                        if (this.files.length == 0) {
+                            return;
+                        }
+                    })
+                }
+            })
+        }
+
+        $("body").on("click", ".imgBox img", function () {
+            previewImgage(this.src)
+        })
+
+
+        $.createOnlyDiv("photo_del_contextmenu");
+        $("#photo_del_contextmenu").append("<div id='photo_del_contextmenu_contextmenu'></div>");  // 追加菜单DIV
+        $('#photo_del_contextmenu_contextmenu').menu({}); // 生成菜单
+        $('#photo_del_contextmenu_contextmenu').menu('appendItem', {   // 添加菜单项
+            text: '删除该图片',
+            iconCls: 'icon-cancel',
+            onclick: function () {
+                var img = $('#photo_del_contextmenu_contextmenu').menu("options").img;
+                $(img).remove();
+                $('#photo_del_contextmenu_contextmenu').menu("hide");
+            }
+        });
+
+        $("body").on("contextmenu", ".imgBox.del img", function (e) {   //绑定右键菜单
+            var self = this;
+            $('#photo_del_contextmenu_contextmenu').menu('show', {
+                left: e.pageX,
+                top: e.pageY,
+                img: self
+            });
+            return false;
+        });
+
+
+    })
+
+    function addStock(id) {
+        $.ajax({
+            url: "/manage/prodect/getOne",
+            data: {"id": id},
+            type: "post",
+            succ: function (data) {
+                $.createOnlyDiv("dialog-add");
+                $("#dialog-add").dialog({
+                    title: '【增加商品库存】',
+                    width: 520,
+                    height: 300,
+                    closed: false,
+                    closable: true,
+                    content: $("#addStockTemplate").html(),
+                    cache: false,
+                    modal: true,
+                    buttons: [{
+                        text: '保存',
+                        handler: function () {
+                            var box = $("#dialog-add").find("input[numberboxname=addStock]");
+                            if (box.numberbox("isValid")) {
+                                $.ajax({
+                                    url: '/manage/prodect/addStock',
+                                    type: "post",
+                                    data: {"id": id, "addStock": box.numberbox("getValue")},
+                                    succ: function (data) {
+                                        $("#dialog-add").dialog("destroy");
+                                        $.messager.alert("【消息通知】", "操作成功!", "OK");
+                                        $('#dg').datagrid('reload');
+                                    }
+                                })
+                            } else {
+                                box.next("span").find("input[type=text]").focus();
+                            }
+                        }
+                    }, {
+                        text: '关闭',
+                        handler: function () {
+                            $("#dialog-add").dialog("destroy")
+                        }
+                    }],
+                    onOpen: function () {
+                        var that = $(this);
+                        that.find("input[name=name]").val(data.prodect.prodectName);
+                        that.find("input[name=category]").val(data.prodect.categoryId.categoryName);
+                        that.find("input[name=price]").val(data.prodect.price);
+                        that.find("input[name=stock]").val(data.prodect.stock);
+                        that.find("input[name=addStock]").numberbox({
+                            required: true,
+                            missingMessage: "添加库存数量不能为空",
+                            min: 0,
+                            validateOnCreate: false,
+                            width: 400
+                        });
+                    }
+                })
+            }
+        })
+    }
+
+
+    function changeStock(id) {
+        $.ajax({
+            url: "/manage/prodect/getOne",
+            data: {"id": id},
+            type: "post",
+            succ: function (data) {
+                $.createOnlyDiv("dialog-add");
+                $("#dialog-add").dialog({
+                    title: '【调整商品库存】',
+                    width: 520,
+                    height: 300,
+                    closed: false,
+                    closable: true,
+                    content: $("#addStockTemplate").html(),
+                    cache: false,
+                    modal: true,
+                    buttons: [{
+                        text: '保存',
+                        handler: function () {
+                            var box = $("#dialog-add").find("input[numberboxname=addStock]");
+                            if (box.numberbox("isValid")) {
+                                $.ajax({
+                                    url: '/manage/prodect/changeStock',
+                                    type: "post",
+                                    data: {"id": id, "stock": box.numberbox("getValue")},
+                                    succ: function (data) {
+                                        $("#dialog-add").dialog("destroy");
+                                        $.messager.alert("【消息通知】", "操作成功!", "OK");
+                                        $('#dg').datagrid('reload');
+                                    }
+                                })
+                            } else {
+                                box.next("span").find("input[type=text]").focus();
+                            }
+                        }
+                    }, {
+                        text: '关闭',
+                        handler: function () {
+                            $("#dialog-add").dialog("destroy")
+                        }
+                    }],
+                    onOpen: function () {
+                        var that = $(this);
+                        that.find("input[name=name]").val(data.prodect.prodectName);
+                        that.find("input[name=category]").val(data.prodect.categoryId.categoryName);
+                        that.find("input[name=price]").val(data.prodect.price);
+                        that.find("input[name=stock]").val(data.prodect.stock);
+                        that.find("input[name=addStock]").parent().prev("td").html("<span class=\"stress\">*</span>调整后数量:")
+                        that.find("input[name=addStock]").numberbox({
+                            required: true,
+                            missingMessage: "库存数量不能为空",
+                            min: 0,
+                            validateOnCreate: false,
+                            width: 400
+                        });
+                    }
+                })
+            }
+        })
+    }
+
+
+    function changStatus(id, status) {
+        $.messager.confirm("提示", "确定" + (status == "0" ? "上架" : "下架") + "该吗？", function (r) {
+            if (r) {
+                $.ajax({
+                    url: "/manage/prodect/changeStatus",
+                    type: "post",
+                    data: {"id": id},
+                    succ: function (res) {
+                        $.messager.alert("提示", (status == "0" ? "上架" : "下架") + "成功", "info");
+                        $("#dg").datagrid("reload");
+                    }
+                })
+            }
+        })
+    }
+
+
+    function edit(id) {
+        $.ajax({
+            url: "/manage/prodect/getOne",
+            data: {"id": id},
+            type: "post",
+            succ: function (data) {
+                $.createOnlyDiv("dialog-add");
+                $("#dialog-add").dialog({
+                    title: '【编辑商品--点击图片可预览，右键可删除】',
+                    width: 530,
+                    height: 400,
+                    closed: false,
+                    closable: true,
+                    content: $("#editProdectTemplate").html(),
+                    cache: false,
+                    modal: true,
+                    buttons: [{
+                        text: '保存',
+                        handler: function () {
+                            var prodectForm = $("#dialog-add").find("form[name=prodectForm]");
+                            if (prodectForm.form("validate")) {
+                                var imgs = [];
+                                $("#dialog-add").find("div.imgBox img").each(function () {
+                                    imgs.push($(this).attr("imgSrc"));
+                                });
+
+                                var fileBox = $("#dialog-add").find("input[textboxname=imgFile]");
+                                if (imgs.length == 0 && !fileBox.filebox("getValue")) {
+                                    return $.messager.alert("提示", "请选择要上传的文件!", "warning")
+                                }
+                                var files = $("#dialog-add").find("input[type=file]")[0].files;
+
+                                var fd = new FormData();
+
+                                for (var i = 0; i < files.length; i++) {
+                                    fd.append("imgFile", files[i]);
+                                }
+
+                                var formData = prodectForm.serializeJson();
+                                for (var k in formData) {
+                                    if (k != "imgFile") {
+                                        fd.append(k, formData[k]);
+                                    }
+                                }
+                                fd.append("imgs", imgs.join("^"));
+                                fd.append("id", id);
+
+                                $.modalWait('open', {"msg": "处理中，请稍等..."});
+                                $.ajax({
+                                    url: '/manage/prodect/edit',
+                                    type: "post",
+                                    data: fd,
+                                    processData: false,
+                                    contentType: false,
+                                    succ: function (data) {
+                                        $("#dialog-add").dialog("destroy");
+                                        if (data.message) {
+                                            $.messager.alert("【消息通知】", "添加成功", "info");
+                                        } else {
+                                            $.messager.alert("【消息通知】", "操作成功!", "OK");
+                                        }
+                                        $('#dg').datagrid('reload');
+                                    },
+                                    complete: function (res) {
+                                        $.modalWait('close');
+                                    }
+                                })
+                            }
+                        }
+                    }, {
+                        text: '关闭',
+                        handler: function () {
+                            $("#dialog-add").dialog("destroy")
+                        }
+                    }],
+                    onOpen: function () {
+                        var that = $(this);
+                        that.find("input[name=name]").validatebox({
+                            required: true,
+                            missingMessage: "商品名称不可为空",
+                            validateOnCreate: false,
+                            width: 400,
+                        }).val(data.prodect.prodectName);
+                        that.find("input[name=category]").combobox({
+                            required: true,
+                            missingMessage: "请选择商品分类",
+                            validType: 'categoryId',
+                            invalidMessage: "请选择商品分类",
+                            validateOnCreate: false,
+                            editable: false,
+                            width: 400,
+                            url: '/manage/category/getCategory',
+                            valueField: "_id",
+                            textField: "categoryName",
+                            value: data.prodect.categoryId._id,
+                            onChange: function (newValue, oldValue) {
+                                var price = that.find("input[numberboxname=price]").numberbox("getValue");
+                                if (!price && newValue) {
+                                    var data = $(this).combobox("getData");
+                                    for (var i = 0; i < data.length; i++) {
+                                        if (data[i]._id == newValue) {
+                                            that.find("input[numberboxname=price]").numberbox("setValue", data[i].categoryPrice)
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        })
+
+                        that.find("input[name=price]").numberbox({
+                            required: true,
+                            missingMessage: "商品价格不能为空",
+                            min: 0,
+                            precision: 2,
+                            validateOnCreate: false,
+                            width: 400,
+                            value: data.prodect.price
+                        })
+
+                        that.find("input[name=imgFile]").filebox({
+                            required: true,
+                            novalidate: true,
+                            multiple: true,
+                            validateOnCreate: false,
+                            missingMessage: "商品图片不能为空",
+                            width: 400,
+                            buttonIcon: 'hk-icon-improt',
+                            iconAlign: 'left',
+                            buttonAlign: 'left',
+                            buttonText: '选择文件',
+                            prompt: '未选择任何文件'
+                        });
+                        that.find("textarea[name=remark]").val(data.prodect.remark);
+                        for (var i = 0; i < data.prodect.img.length; i++) {
+                            var img = document.createElement("img");
+                            img.src = data.prodect.img[i];
+                            img.width = 50;
+                            img.height = 50;
+                            img.setAttribute("imgSrc", data.prodect.img[i]);
+                            that.find("div.imgBox").append(img)
+                        }
+
+
+
+
+                        var typeArray = [".jpg", ".jpeg", ".png", ".bmp"];
+                        that.find("input[type=file]").attr("accept", typeArray.join(","));
+                        that.on("change", "input[type=file]", function () {
+                            if (this.files.length == 0) {
+                                return;
+                            }
+                        })
+                    }
+                })
+            }
+        })
+    }
+
+    function imageList(row) {
+        row = JSON.parse(decodeURIComponent(row));
+        var content = document.createElement("div");
+        content.className = "imgBox";
+        content.style.margin = "30px";
+        for (var i = 0; i < row.img.length; i++) {
+            var img = document.createElement("img");
+            img.src = row.img[i];
+            img.width = 50;
+            img.height = 50;
+            content.appendChild(img)
+        }
+
+        $.createOnlyDiv("dialog-add");
+        $("#dialog-add").dialog({
+            title: '【图片列表--点击图片可预览】',
+            width: 530,
+            height: 400,
+            closed: false,
+            closable: true,
+            content: content,
+            cache: false,
+            modal: true,
+        })
+    }
+
+
+</script>
+<script id="prodectTemplate" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="prodectForm">
+            <table border="0">
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品名称:</td>
+                    <td><input type="text" name="name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品分类:</td>
+                    <td><input type="text" name="category"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品价格:</td>
+                    <td><input type="text" name="price"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品数量:</td>
+                    <td><input type="text" name="stock"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品图片:</td>
+                    <td>
+                        <input type="text" name="imgFile">
+                    </td>
+                </tr>
+                <tr style="display: none">
+                    <td class="text-right"><span class="stress">*</span>图片预览:</td>
+                    <td>
+                        <div class="imgBox"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品说明:</td>
+                    <td>
+                        <textarea name="remark" maxlength="1000"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品状态:</td>
+                    <td><label><input type="checkbox" checked="checked" value="1" name="status"/>是否立刻上架</label>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
+<script id="addStockTemplate" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="prodectForm">
+            <table border="0">
+                <tr>
+                    <td class="text-right">商品名称:</td>
+                    <td><input type="text" name="name" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品分类:</td>
+                    <td><input type="text" name="category" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品价格:</td>
+                    <td><input type="text" name="price" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">库存数量:</td>
+                    <td><input type="text" name="stock" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>增加数量:</td>
+                    <td><input type="text" name="addStock"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
+
+<script id="editProdectTemplate" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="prodectForm">
+            <table border="0">
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品名称:</td>
+                    <td><input type="text" name="name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品分类:</td>
+                    <td><input type="text" name="category"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品价格:</td>
+                    <td><input type="text" name="price"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品图片:</td>
+                    <td>
+                        <input type="text" name="imgFile">
+                        <a class="easyui-linkbutton" style="display: none" data-options="iconCls:'icon-see'"
+                           id="btnPreview">预览凭证</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>图片预览:</td>
+                    <td>
+                        <div class="imgBox del"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品说明:</td>
+                    <td>
+                        <textarea name="remark" maxlength="1000"></textarea>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+doctype html
+html
+    head
+        title= '人人币交易平台-商品详情'
+        script(type="text/javascript",src="/public/javascripts/jquery.pack.js")
+        script(type="text/javascript",src="/public/javascripts/jQuery.blockUI.js")
+        script(type="text/javascript",src="/public/javascripts/jquery.SuperSlide.js")
+        script(type="text/javascript",src="/public/javascripts/cart.js")
+        script(type="text/javascript",src="/public/javascripts/jquery.fly.min.js")
+        //[if lte IE 9]
+        script(type="text/javascript",src="/public/javascripts/requestAnimationFrame.js")
+        //[endif]
+        link(rel='stylesheet', href='/public/stylesheets/all.css')
+        link(rel='stylesheet', href='/public/stylesheets/style.css')
+    body
+        .w.l.top
+            .c.w1016.f12.lh26
+                ul.l
+                    li欢迎访问人人币交易平台！
+                ul.r
+                    li
+                        a加入收藏夹
+                    li
+                        a设为主页
+        div.c.w1016
+            div.w.l
+                div.logo.l
+                    img(alt="nofollow", src="/public/images/logo.png")
+                div.search.r
+                    div.seak.l.bga.bgc.bgn.f12
+                        em 商品
+                        input.keyword.nbg.nbr(type=text,placeholder="请输入您要搜索的商品")
+                        input#btnSerach.seadp.l.nbg.nbr.cup(type=submit)
+        div.w.l.nav.bga.bgc
+            div.w1016.c
+                ul.w.l.j-nav.f14.fwb.lili.lile
+                    li
+                        a(href="/")首页
+                    li
+                        a(href="/me")个人中心
+                    li
+                        a(href="/orderList")历史订单
+                    li
+                        a#cart(href="/cart",style="position: relative;")购物车
+        div.block10.w.l
+        div.w1016.c
+            div.w.l.goodshow
+                div.w.l.typelist
+                    div.pos.l.f12
+                        a(href="/")人人币交易平台首页
+                &nbsp;&gt;&nbsp;
+    a(href='/' + prodect.categoryId._id)=prodect.categoryId.categoryName
+&nbsp;&gt;&nbsp;
+    a(href='#')=prodect.prodectName
+div.w.l.good_info.mtop10
+    br
+div.good_tu.l
+    div.tabBox.w.l
+        div.hd.l
+            ul
+                each img,index in prodect.img
+                    if(index == 0)
+                        li.on
+                            img(src=img)
+                    else if(index < 5)
+                        li.mtop6
+                            img(src=img)
+        div.bd.l
+            ul#imgPreviewList
+                each img,index in prodect.img
+                    li.on
+                        img.imgPrview(src=img )
+script.
+    $(".tabBox").slide({mainCell: ".bd ul"});
+div.good_attr.l
+    h1#prodectName(prodectId=prodect._id)=prodect.prodectName
+    p.w.l.lh26.mtop5
+        span.gar_jg
+            label="售价:"
+            i="￥"
+            em#prodectPrice=prodect.price.toFixed(2)
+        br
+        span.gar_pj="商品库存:"
+        em=prodect.stock
+        br
+        span.gar_pj="用户评价:(已经有"
+        em=evaluates.length
+        span="个人评价)"
+        br
+    p.p_sx.l.mtop5
+        span="人气指数:"
+        em=1999
+        br
+        span.shouchang="收藏商品"
+    div.w.l.gms
+        if(prodect.stock > 0)
+            span#addCart.rrb-btn.addCart="加入购物车"
+            span#gwbtn.rrb-btn.buy="立刻购买"
+            span#gtbbtn.rrb-btn.give="我要送人"
+        else
+            span#gtbbtn.rrb-btn.addCart.disabled="加入购物车"
+            span#gwbtn.rrb-btn.buy.disabled="立刻购买"
+            span#gtbbtn.rrb-btn.give.disabled="我要送人"
+div.w.l.good_info.mtop10
+    br
+div.good_con.w.l
+    div.good_xg.l
+        div.l.w188.f12#history_div
+            p.dpbt="商品推荐"
+            ul#history_list
+                each prod in proposal
+                    li
+                        a(href="/prodect/" + prod._id,target="_blank")
+                            img(src=prod.img[0],alt=prod.prodectName)
+                        p.hisbt
+                            a(href="/prodect/" + prod._id,target="_blank",title=prod.prodectName)=prod.prodectName
+                        p="售价："
+                        em="￥" + prod.price.toFixed(2)
+    div.good_xx.l
+        ul.basicTitle
+            li.current(index=1)
+                span="商品详情"
+            li(index=2)
+                span="商品评价"
+            li(index=3)
+                span="购买记录"
+        div.details(tabIndex=1)
+            ul.suxing
+                li="商品介绍:" + prodect.remark
+            div.xianqing.top10
+                div.l.xianqing_et
+                    div.l.xianqing_tie.f14="宝贝详情"
+                    div.l.xianqing_nr.f14
+                        each img in prodect.img
+                            img(src=img,alt=prodect.prodectName,style="wdith:700px")
+        div.good_child_list(tabIndex=2)="22222222222222222222222"
+        div.good_child_list(tabIndex=3)="33333333333333333333333"
+        div.cartMsg="已成功加入购物车!"
+        script.
+            $("ul.basicTitle li").click(function () {
+                $("ul.basicTitle li").removeClass("current");
+                var index = $(this).addClass("current").attr("index");
+                $("div[tabIndex]").each(function () {
+                    if ($(this).attr("tabIndex") == index) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                })
+            })
+            var cart = new cart();
+            cart.setTip();
+            var offset = $("#cart").offset();
+            $("#addCart").click(function () {
+                if (!$(this).hasClass("disabled")) {
+                    var id = $("#prodectName").attr("prodectId");
+                    var price = parseFloat($("#prodectPrice").html());
+                    if (id && !isNaN(price)) {
+                        cart.addProdect(id, 1, price);
+                        cart.save();
+                        var addcar = $(this);
+                        var img = $("#imgPreviewList li:visible").find('img').attr('src');
+                        var flyer = $('<img class="u-flyer" src="' + img + '">');
+                        flyer.fly({
+                            start: {
+                                left: event.pageX,
+                                top: event.pageY
+                            },
+                            end: {
+                                left: offset.left + 10,
+                                top: offset.top - 15,
+                                width: 0,
+                                height: 0
+                            },
+                            onEnd: function () {
+                                cart.setTip();
+                                $(".cartMsg").show().animate({width: '250px'}, 200)
+                                        .fadeOut(1000, function () {
+                                            $(".cartMsg").width(0)
+                                        });
+                            }
+                        });
+                    } else {
+                        alert("加入失败")
+                    }
+                }
+            })

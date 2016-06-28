@@ -1,0 +1,110 @@
+doctype html
+html
+    head
+        title= '人人币交易平台-商品列表'
+        script(type="text/javascript",src="/public/javascripts/jquery.pack.js")
+        link(rel='stylesheet', href='/public/stylesheets/all.css')
+        link(rel='stylesheet', href='/public/stylesheets/style.css')
+    body
+        .w.l.top
+            .c.w1016.f12.lh26
+                ul.l
+                    li欢迎访问人人币交易平台！
+                ul.r
+                    li
+                        a加入收藏夹
+                    li
+                        a设为主页
+
+        div.c.w1016
+            div.w.l
+                div.logo.l
+                    img(alt="nofollow", src="/public/images/logo.png")
+                div.search.r
+                    div.seak.l.bga.bgc.bgn.f12
+                        em 商品
+                        input.keyword.nbg.nbr(type=text,placeholder="请输入您要搜索的商品")
+                        input#btnSerach.seadp.l.nbg.nbr.cup(type=submit)
+
+
+        div.w.l.nav.bga.bgc
+            div.w1016.c
+                ul.w.l.j-nav.f14.fwb.lili.lile
+                    li
+                        a(href="/")首页
+                    li
+                        a(href="/me")个人中心
+                    li
+                        a(href="/orderList")历史订单
+                    li
+                        a(href="/cart")购物车
+
+
+
+        div.block10.w.l
+        div.w1016.c
+            div.w.l.typelist
+                div.pos.l.f12
+                    a(href="/")人人币交易平台首页
+                    a(href="/")
+                    &lt;共
+                    em="18万"
+                    span="件商品"
+                dl.l.f12.td1.mtop5
+                    dt.tn.l 商品分类
+                        dd.tl.l
+                            ul.w.l.lile
+                                li
+                                    if(!categoryId)
+                                        a(href='#',style="background: #fdf0f3")="全部"
+                                    else
+                                        a(href='/')="全部"
+                                each category in categorys
+                                    li
+                                        if(categoryId!=category._id.toString())
+                                            a(href='/'+category._id)=category.categoryName
+                                        else
+                                            a(href='#',style="background: #fdf0f3")=category.categoryName
+
+
+        div.block10.w.l
+        div.w1016.c
+                div.goodlist.l
+                    each category in categorys
+                        if(category.prodects.length>0)
+                            div.category.clear
+                                span.categoryName=category.categoryName
+                                ul.w.l.lili.lile.f12
+                                    each prodect,index in category.prodects
+                                            if(index % 4 == 0)
+                                                li
+                                                    div.pic.w.l
+                                                        a(href="/prodect/" + prodect._id)
+                                                            img(src=prodect.img[0])
+                                                    div.hits.w.l
+                                                        span.l
+                                                            label=prodect.price
+                                                    div.g_title.w.l
+                                                        a(href="/prodect/" + prodect._id)
+                                                            h3=prodect.prodectName
+                                            else
+                                                li.ce
+                                                    div.pic.w.l
+                                                        a(href="/prodect/" + prodect._id)
+                                                            img(src=prodect.img[0])
+                                                    div.hits.w.l
+                                                        span.l
+                                                            label=prodect.price
+                                                    div.g_title.w.l
+                                                        a(href="/prodect/" + prodect._id)
+                                                            h3=prodect.prodectName
+        if(errorMsg)
+            div.w1016.c
+                div.goodlist.l
+                    div.category(style="text-align:center")
+                        span.categoryName=errorMsg
+
+
+
+
+

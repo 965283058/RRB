@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品管理</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-style.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-icon.css">
+    <script type="text/javascript" src="../../public/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/extend.js"></script>
+    <script type="text/javascript" src="../js/previewImgage.js"></script>
+    <script type="text/javascript" src="../js/datagrid-detailview.js"></script>
+
+</head>
+
+<body>
+<div class="searchBox">
+    <div class="none clear">
+        <div>
+            商品名称:
+            <select id="prodect">
+            </select>
+        </div>
+        <div>
+            下单人工号:
+            <input type="text" class="searchVal" id="jobNo" style="width: 100px"/>
+        </div>
+        <div>
+            下单人姓名:
+            <input type="text" class="searchVal" id="name" style="width: 120px"/>
+        </div>
+        <div>订单状态:
+            <select id="status" class="easyui-combobox" data-options="width:100,panelHeight:120,editable:false">
+                <option value="">全部</option>
+                <option value="-1">已取消</option>
+                <option value="0">未发货</option>
+                <option value="1">已发货</option>
+                <option value="2">已评价</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="none clear">
+        <div>
+            下单时间:
+            <input type="text" id="beginDate" class="easyui-datebox" data-options="width:110,editable:false"/>—<input
+                type="text" id="endDate" class="easyui-datebox" data-options="width:110,editable:false"/>
+
+        </div>
+        <div>
+            <button class="hk-btn search" id="btnSearch">搜索
+            </button>
+            <button class="hk-btn reset" id="btnReset" style="background-position: 2px 2px">重置
+            </button>
+        </div>
+    </div>
+
+</div>
+<table id="dg"></table>
+
+
+<div id="prodectDgToolbar" style="padding: 7px">
+    商品名称：<input type="text" id="prodectName"/>
+    商品分类：<input type="text" id="category"/>
+    <button class="hk-btn search" id="btnSearchProdect">搜索
+    </button>
+</div>
+<script>
+
+    $(function () {
+
+        $("#category").combobox({
+            width: 150,
+            panelHeight: 300,
+            editable: false,
+            url: '/manage/category/getCategory',
+            valueField: "_id",
+            textField: "categoryName",
+            loadFilter: function (data) {
+                data.splice(0, 0, {"_id": "", "categoryName": "全部"});
+                return data;
+            }
+        })
+
+        var dgHeight = $(document).height() - $("div.searchBox:first").height() - 10;
+
+        $('#prodect').combogrid({
+            width: 150,
+            panelWidth: 750,
+            panelHeight: 400,
+            editable: false,
+            idField: '_id',
+            textField: 'prodectName',
+            pagination: true,
+            pageSize: 50,
+            pageList: [10, 20, 50, 100, 200],
+            loadMsg: '加载中...',
+            singleSelect: true,
+            remoteSort: true,
+            sortName: 'createTime',
+            url: '/manage/prodect/list',
+            // queryParams: data,
+            columns: [[
+                {
+                    field: 'number',
+                    title: '序号',
+                    width: '60',
+                    align: 'center'
+                },
+                {
+                    field: 'id',
+                    title: 'ID',
+                    hidden: true
+                },
+                {
+                    field: 'prodectName',
+                    title: '商品名称',
+                    width: '250',
+                    halign: 'center',
+                    sortable: true
+                },
+                {
+                    field: 'categoryId',
+                    title: '类别名称',
+                    width: '200',
+                    align: 'center',
+                    sortable: true,
+                    formatter: function (value, row, index) {
+                        return value.categoryName;
+                    },
+                },
+                {
+                    field: 'price',
+                    title: '价格',
+                    width: '80',
+                    halign: 'center',
+                    align: 'right',
+                    sortable: true
+                },
+                {
+                    field: 'stock',
+                    title: '库存',
+                    width: '80',
+                    halign: 'center',
+                    align: 'right',
+                    sortable: true
+                },
+                {
+                    field: 'status',
+                    title: '状态',
+                    width: '60',
+                    align: 'center',
+                    sortable: true,
+                    formatter: function (value, row, index) {
+                        return value ? "正常" : "已下架";
+                    },
+                },
+            ]],
+            toolbar: "#prodectDgToolbar"
+        });
+
+        $("#btnSearchProdect").click(function () {
+            $("#prodect").combogrid("grid").datagrid("load", {
+                "name": $("#prodectName").val(),
+                "categoryId": $("#category").combobox('getValue')
+            })
+        })
+
+        $("#btnSearch").click(function () {
+            var prodectId = $("#prodect").combobox('getValue');
+            var name = $("#name").val();
+            var jobNo = $("#jobNo").val();
+            var status = $("#status").combobox('getValue');
+            var beginDate = $("#beginDate").datebox('getValue');
+            var endDate = $("#endDate").datebox('getValue');
+            showList({
+                "prodectId": prodectId,
+                "name": name,
+                "jobNo": jobNo,
+                "status": status,
+                "beginDate": beginDate,
+                "endDate": endDate
+            });
+        }).click();
+
+        $("#btnReset").click(function () {
+            $("#prodect").combogrid('setValue', "");
+            $("#name").val("");
+            $("#jobNo").val("");
+            $("#status").combobox('setValue', "");
+            $("#beginDate").datebox('setValue', "");
+            $("#endDate").datebox('setValue', "");
+        })
+
+        function showList(data) {
+            data = data || {};
+            var dg = $('#dg');
+            dg.datagrid({
+                pagination: true,
+                height: dgHeight,
+                pageSize: 50,
+                pageList: [10, 20, 50, 100, 200],
+                loadMsg: '加载中...',
+                singleSelect: true,
+                remoteSort: true,
+                url: '/manage/order/list',
+                queryParams: data,
+                columns: [[
+                    {
+                        field: 'number',
+                        title: '序号',
+                        width: '60',
+                        align: 'center'
+                    },
+                    {
+                        field: '_id',
+                        title: 'ID',
+                        hidden: true
+                    },
+                    {
+                        field: 'jobNo',
+                        title: '工号',
+                        width: '150',
+                        halign: 'center',
+                        sortable: true
+                    },
+                    {
+                        field: 'name',
+                        title: '收货人',
+                        width: '150',
+                        halign: 'center',
+                        sortable: true
+                    },
+                    {
+                        field: 'logisticalId',
+                        title: '物流方式',
+                        width: '100',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            if (typeof value == "object" && value) {
+                                return value.name;
+                            }
+                        },
+                    },
+                    {
+                        field: 'type',
+                        title: '类型',
+                        width: '60',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return value == 1 ? "自用" : "送人";
+                        },
+                    },
+
+                    {
+                        field: 'prodectList',
+                        title: '购买商品',
+                        width: '300',
+                        halign: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            if (typeof value == "object" && value) {
+                                var a = [];
+                                for (var i = 0; i < value.length; i++) {
+                                    a.push(value[i].prodectId.prodectName);
+                                }
+                                return a.join(";&nbsp;&nbsp;");
+                            }
+                        }
+                    },
+                    {
+                        field: 'money',
+                        title: '总金额',
+                        width: '100',
+                        halign: 'center',
+                        align: 'right',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return (parseFloat(value) || 0).toFixed(2)
+                        }
+                    },
+                    {
+                        field: 'createTime',
+                        title: '下单时间',
+                        width: '135',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return $.converToCNDate(value);
+                        }
+                    },
+                    {
+                        field: 'status',
+                        title: '状态',
+                        width: '60',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            switch (value) {
+                                case -2:
+                                    return "已删除";
+                                case -1:
+                                    return "已取消";
+                                case 0:
+                                    return "已下单";
+                                case 1:
+                                    return "已发货";
+                                case 2:
+                                    return "已评价";
+                                default :
+                                    return "";
+                            }
+                        },
+                    },
+                    {
+                        field: 'sender',
+                        title: '发货人',
+                        width: '180',
+                        halign: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            if (typeof value == 'object' && value != null) {
+                                return value.email;
+                            }
+                        }
+                    },
+                    {
+                        field: 'sendTime',
+                        title: '发货时间',
+                        width: '135',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return $.converToCNDate(value);
+                        }
+                    },
+                    {
+                        field: 'remark',
+                        title: '下单留言',
+                        width: '300',
+                        halign: 'center'
+                    },
+                ]],
+                emptyMessage: "没有符合条件的记录",
+                view: detailview,
+                detailFormatter: function (rowIndex, rowData) {
+                    return '<div style="padding: 15px 30px"><div id="ProdectDetail_' + rowIndex + '"></div></div>';
+                },
+                onExpandRow: function (index, row) {
+                    var selector = $("#ProdectDetail_" + index);
+                    if (selector.css("dispaly") != 'none') {
+                        for (var i = 0; i < row.prodectList.length; i++) {
+                            row.prodectList[i].number = i + 1;
+                        }
+                        selector.datagrid({
+                            data: row.prodectList,
+                            width: 580,
+                            columns: [[
+                                {
+                                    field: 'number',
+                                    title: '序号',
+                                    width: '40',
+                                    align: 'center'
+                                },
+                                {
+                                    field: 'prodectId',
+                                    title: '商品ID',
+                                    hidden: true,
+                                    formatter: function (value, row, index) {
+                                        return value._id;
+                                    }
+                                },
+                                {
+                                    field: 'prodectName',
+                                    title: '商品名称',
+                                    width: '265',
+                                    align: 'center',
+                                    formatter: function (value, row, index) {
+                                        return row.prodectId.prodectName;
+                                    }
+                                },
+                                {
+                                    field: 'price',
+                                    title: '商品单价',
+                                    width: '90',
+                                    halign: 'center',
+                                    align: 'right',
+                                    formatter: function (value, row, index) {
+                                        return (parseFloat(value) || 0).toFixed(2)
+                                    }
+                                },
+                                {
+                                    field: 'count',
+                                    title: '商品数量',
+                                    width: '90',
+                                    halign: 'center',
+                                    align: 'right',
+                                }, {
+                                    field: 'total',
+                                    title: '商品总价',
+                                    width: '90',
+                                    halign: 'center',
+                                    align: 'right',
+                                    formatter: function (value, row, index) {
+                                        return ((parseFloat(row.price) || 0) * (parseInt(row.count) || 0)).toFixed(2);
+                                    }
+                                },
+                            ]],
+                        });
+                        $(this).datagrid("fixDetailRowHeight", index);
+                    }
+                    $(this).datagrid("resize");
+                }
+            });
+
+            dg.datagrid("getPanel").find(".datagrid-header-check input").hide();
+            dg.datagrid('getPager').find('.pagination-num').width(40);
+            dg.datagrid('getPager').find('.pagination-page-list').before('&nbsp;&nbsp;每页显示').after('记录').parent('td').css('line-height', '25px')
+        }
+    })
+
+
+</script>
+<script id="prodectTemplate" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="prodectForm">
+            <table border="0">
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品名称:</td>
+                    <td><input type="text" name="name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品分类:</td>
+                    <td><input type="text" name="category"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品价格:</td>
+                    <td><input type="text" name="price"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品数量:</td>
+                    <td><input type="text" name="stock"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品图片:</td>
+                    <td>
+                        <input type="text" name="imgFile">
+                    </td>
+                </tr>
+                <tr style="display: none">
+                    <td class="text-right"><span class="stress">*</span>图片预览:</td>
+                    <td>
+                        <div class="imgBox"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品说明:</td>
+                    <td>
+                        <textarea name="remark" maxlength="1000"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品状态:</td>
+                    <td><label><input type="checkbox" checked="checked" value="1" name="status"/>是否立刻上架</label>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
+<script id="addStockTemplate" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="prodectForm">
+            <table border="0">
+                <tr>
+                    <td class="text-right">商品名称:</td>
+                    <td><input type="text" name="name" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品分类:</td>
+                    <td><input type="text" name="category" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品价格:</td>
+                    <td><input type="text" name="price" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">库存数量:</td>
+                    <td><input type="text" name="stock" readonly class="disabledText"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>增加数量:</td>
+                    <td><input type="text" name="addStock"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
+
+<script id="editProdectTemplate" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="prodectForm">
+            <table border="0">
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品名称:</td>
+                    <td><input type="text" name="name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品分类:</td>
+                    <td><input type="text" name="category"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品价格:</td>
+                    <td><input type="text" name="price"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>商品图片:</td>
+                    <td>
+                        <input type="text" name="imgFile">
+                        <a class="easyui-linkbutton" style="display: none" data-options="iconCls:'icon-see'"
+                           id="btnPreview">预览凭证</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right"><span class="stress">*</span>图片预览:</td>
+                    <td>
+                        <div class="imgBox del"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-right">商品说明:</td>
+                    <td>
+                        <textarea name="remark" maxlength="1000"></textarea>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+
+</body>
+</html>

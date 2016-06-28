@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-style.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-icon.css">
+    <script type="text/javascript" src="../../public/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/extend.js"></script>
+    <style>
+        .dialog-button {
+            text-align: center;
+        }
+
+        .dialog-button a {
+            margin: auto 20px;
+        }
+
+        .centerPanel {
+            padding: 160px 0px;
+            text-align: center;
+            display: block;
+        }
+
+        .centerPanel button {
+            width: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="searchBox">
+    <div>
+        邮箱：
+        <input type="text" class="searchVal" id="searchVal"/>
+        <button class="hk-btn search" id="btnSearch">搜索
+        </button>
+
+        <button class="hk-btn reset" id="btnReset" style="background-position: 2px 2px">重置
+        </button>
+    </div>
+</div>
+<table id="userList"></table>
+
+<script>
+    $(function () {
+        var h = $(window).height() - 52;
+
+        /*用户管理列表*/
+        function showList(data) {
+            data = data || {};
+            $('#userList').datagrid({
+                singleSelect: true,
+                height: h,
+                url: '/manage/user/list',
+                queryParams: data,
+                pagination: true,
+                pageSize: 50,
+                pageList: [10, 20, 50, 100, 200],
+                loadMsg: '加载中...',
+                columns: [[
+                    {
+                        field: '_id',
+                        title: '用户ID',
+                        width: '180',
+                        align: 'center',
+                        sortable: true,
+                    },
+                    {
+                        field: 'email',
+                        title: '用户登录邮箱',
+                        width: '190',
+                        halign: 'center',
+                        sortable: true,
+                    },
+                    {
+                        field: 'name',
+                        title: '真实姓名',
+                        width: '180',
+                        halign: 'center',
+                        sortable: true,
+                    },
+                    {
+                        field: 'superAdmin',
+                        title: '用户类型',
+                        width: '100',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return value == "1" ? "超级管理员" : "普通管理员";
+                        }
+                    },
+                    {
+                        field: 'createTime',
+                        title: '创建时间',
+                        width: '135',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return $.converToCNDate(value);
+                        }
+                    },
+                    {
+                        field: 'errCount',
+                        title: '错误登录次数',
+                        width: '100',
+                        align: 'center',
+                        sortable: true,
+                    },
+                    {
+                        field: 'lastLoginTime',
+                        title: '最后登录时间',
+                        width: '135',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return $.converToCNDate(value);
+                        }
+                    },
+                    {
+                        field: 'status',
+                        title: '状态',
+                        width: '90',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            switch (value) {
+                                case -1:
+                                    return "已删除";
+                                case 1:
+                                    return "正常用户";
+                                case 0:
+                                    return "已禁止";
+                                default :
+                                    return "";
+                            }
+                        }
+                    },
+                    {
+                        field: 'chang',
+                        title: '更改状态',
+                        width: '90',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            if (row.status != -1) {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn" onclick="changeStatus(\'' + row._id + '\',\'' + row.status + '\')">' + (row.status == 0 ? "启用" : row.status == 1 ? "禁用" : "") + '</a>';
+                            } else {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn disabled">已删除</a>';
+                            }
+                        },
+                    },
+                    {
+                        field: 'reset',
+                        title: '重置密码',
+                        width: '80',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            if (row.status != -1) {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn" onclick="resetPwd(\'' + row._id + '\')">重置</a>';
+                            } else {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn disabled">重置</a>';
+                            }
+                        },
+                    },
+                    {
+                        field: 'del',
+                        title: '删除用户',
+                        width: '80',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            if (row.status != -1) {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn" onclick="delUser(\'' + row._id + '\')">删除</a>';
+                            } else {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn disabled">删除</a>';
+                            }
+                        },
+                    },
+                    {
+                        field: 'role',
+                        title: '编辑',
+                        width: '80',
+                        align: 'center',
+                        formatter: function (value, row, index) {
+                            if (row.status != -1) {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn" onclick="edit(\'' + encodeURIComponent(JSON.stringify(row)) + '\')">编辑</a>';
+                            } else {
+                                return '<a href="javasrcipt:void(0)" class="gridCellBtn disabled">编辑</a>';
+                            }
+                        },
+                    },
+                ]],
+                toolbar: [{
+                    iconCls: 'hk-icon-edit',
+                    handler: function(){
+                        edit(null)
+                    },
+                    text: "添加用户",
+                }]
+            });
+        }
+
+        /*查询操作*/
+        $("#btnSearch").bind("click", function () {
+            showList({
+                "email": $("#searchVal").val()
+            })
+        }).click();
+
+        /*重置操作*/
+        $("#btnReset").bind("click", function () {
+            $("#searchVal").val('');
+        })
+
+
+    })
+    function resetPwd(id) {
+        $.messager.confirm("删除提示", "您确定重置该用户的密码吗？", function (r) {
+            if (r) {
+                $.ajax({
+                    url: "/manage/user/resetPwd",
+                    type: "post",
+                    data: {"id": id},
+                    succ: function (res) {
+                        $.messager.alert("提示", "重置成功!密码为登录邮箱", "info");
+                    }
+                })
+            }
+        })
+    }
+
+    /*删除用户*/
+    function delUser(id) {
+        $.messager.confirm("删除提示", "您确定删除该用户吗？", function (r) {
+            if (r) {
+                $.ajax({
+                    url: "/manage/user/del",
+                    type: "post",
+                    data: {"id": id},
+                    succ: function (res) {
+                        $.messager.alert("提示", "删除成功!", "info");
+                        $('#userList').datagrid("reload")
+                    }
+                })
+            }
+        })
+    }
+
+    /*添加用户*/
+    function edit(row) {
+        $.createOnlyDiv('newUser-dialog');
+        var content = $("#newUser").html();
+        if (row) {
+            row = JSON.parse(decodeURIComponent(row));
+        }
+        $("#newUser-dialog").dialog({
+            title: (row ? "【编辑用户】" : "【添加新用户-初始密码为登录邮箱】"),
+            width: 400,
+            height: 220,
+            top: 100,
+            closed: false,
+            closable: false,
+            cache: false,
+            content: content,
+            modal: true,
+            buttons: [{
+                text: '保存',
+                iconCls: 'icon-save',
+                handler: function () {
+                    var userForm = $("#newUser-dialog").find("form[name=userForm]");
+                    var postUrl = "/manage/user/add";
+                    var params = userForm.serializeJson();
+                    if (row) {
+                        postUrl = "/manage/user/edit";
+                        params.id = row._id;
+                    }
+
+                    if (userForm.form("validate")) {
+                        $.ajax({
+                            url: postUrl,
+                            type: "post",
+                            data: params,
+                            succ: function (res) {
+                                if (!row) {
+                                    $.messager.alert("提示", "添加用户成功,初始密码为登录邮箱!");
+                                } else {
+                                    $.messager.alert("提示", "修改成功!");
+                                }
+                                $("#newUser-dialog").dialog("destroy");
+                                $('#userList').datagrid("reload")
+                            }
+                        })
+                    }
+                }
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    $("#newUser-dialog").dialog("destroy");
+                }
+            }],
+            onOpen: function () {
+                $("#newUser-dialog").find("input[name=email]").validatebox({
+                    required: true,
+                    validType: 'email',
+                    validateOnCreate: false,
+                    missingMessage: "请输入邮箱",
+                    invalidMessage: "邮箱格式不正确"
+                });
+                $("#newUser-dialog").find("input[name=name]").validatebox({
+                    required: true,
+                    validateOnCreate: false,
+                    missingMessage: "请输入用户名",
+                });
+                $("#newUser-dialog").find("input[name=power]").combotree({
+                    required: true,
+                    missingMessage: "请选择菜单权限",
+                    validateOnCreate: false,
+                    editable: false,
+                    width: 280,
+                    panelHeight: 400,
+                    multiple: true,
+                    checkbox: true,
+                    url: '/manage/menu/getTreeMenu'
+                })
+
+               if(row){
+                   $("#newUser-dialog").find("input[name=email]").val(row.email);
+                   $("#newUser-dialog").find("input[name=name]").val(row.name);
+                   $("#newUser-dialog").find("input[comboname=power]").combotree("setValue", row.power)
+               }
+            }
+        })
+    }
+
+    function changeStatus(id,status) {
+        $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该用户吗？", function (r) {
+            if (r) {
+                $.ajax({
+                    url: "/manage/user/changeStatus",
+                    type: "post",
+                    data: {"id": id},
+                    succ: function (res) {
+                        $.messager.alert("提示", (status == "0" ? "启用" : "禁用") + "成功", "info");
+                        $("#userList").datagrid("reload");
+                    }
+                })
+            }
+        })
+    }
+
+</script>
+<script id="newUser" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="userForm">
+            <table class="inputTable" border="0">
+                <tr>
+                    <td>登录邮箱:</td>
+                    <td><input type="text" class="input_style" name="email"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>用&nbsp;&nbsp;户&nbsp;&nbsp;名:</td>
+                    <td><input type="text" class="input_style" name="name"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>菜单权限:</td>
+                    <td><input type="text" name="power"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</script>
+</body>
+</html>
