@@ -13,35 +13,7 @@ html
         link(rel='stylesheet', href='/public/stylesheets/all.css')
         link(rel='stylesheet', href='/public/stylesheets/style.css')
     body
-        .w.l.top
-            .c.w1016.f12.lh26
-                ul.l
-                    li欢迎访问人人币交易平台！
-                ul.r
-                    li
-                        a加入收藏夹
-                    li
-                        a设为主页
-        div.c.w1016
-            div.w.l
-                div.logo.l
-                    img(alt="nofollow", src="/public/images/logo.png")
-                div.search.r
-                    div.seak.l.bga.bgc.bgn.f12
-                        em 商品
-                        input.keyword.nbg.nbr(type=text,placeholder="请输入您要搜索的商品")
-                        input#btnSerach.seadp.l.nbg.nbr.cup(type=submit)
-        div.w.l.nav.bga.bgc
-            div.w1016.c
-                ul.w.l.j-nav.f14.fwb.lili.lile
-                    li
-                        a(href="/")首页
-                    li
-                        a(href="/me")个人中心
-                    li
-                        a(href="/orderList")历史订单
-                    li
-                        a#cart(href="/cart",style="position: relative;")购物车
+        include header
         div.block10.w.l
         div.w1016.c
             div.w.l.goodshow
@@ -96,8 +68,8 @@ html
                     div.w.l.gms
                         if(prodect.stock>0)
                             span#addCart.rrb-btn.addCart="加入购物车"
-                            span#gwbtn.rrb-btn.buy="立刻购买"
-                            span#gtbbtn.rrb-btn.give="我要送人"
+                            span#buy.rrb-btn.buy="立刻购买"
+                            span#give.rrb-btn.give="我要送人"
                         else
                             span#gtbbtn.rrb-btn.addCart.disabled="加入购物车"
                             span#gwbtn.rrb-btn.buy.disabled="立刻购买"
@@ -150,15 +122,20 @@ html
                                 })
                             })
                             var cart=new cart();
-                            cart.setTip();
+                            var stock= !{prodect.stock};
                             var offset = $("#cart").offset();
                             $("#addCart").click(function(){
                                 if(!$(this).hasClass("disabled")){
                                     var id=$("#prodectName").attr("prodectId");
                                     var price=parseFloat($("#prodectPrice").html());
                                     if(id&&!isNaN(price)){
+                                        var p=cart.getProdect(id);
+                                        if(p&&(p.count+1>stock)){
+                                            $(".cartMsg").html("此商品购物车数量以超过库存！").show().animate({width: '280px'}, 200)
+                                                    .fadeOut(2000,function(){$(".cartMsg").width(0)});
+                                            return;
+                                        }
                                         cart.addProdect(id,1,price);
-                                        cart.save();
                                         var addcar = $(this);
                                         var img = $("#imgPreviewList li:visible").find('img').attr('src');
                                         var flyer = $('<img class="u-flyer" src="'+img+'">');
@@ -174,11 +151,8 @@ html
                                                 height: 0
                                             },
                                             onEnd: function() {
-                                                cart.setTip();
-                                                $(".cartMsg").show().animate({width: '250px'}, 200)
-                                                        .fadeOut(1000,function(){
-                                                            $(".cartMsg").width(0)
-                                                        });
+                                                $(".cartMsg").html("已成功加入购物车！").show().animate({width: '250px'}, 200)
+                                                        .fadeOut(1000,function(){ $(".cartMsg").width(0) });
                                             }
                                         });
                                     }else{
@@ -186,7 +160,34 @@ html
                                     }
                                 }
                             })
+                            var prodect=!{JSON.stringify(prodect)};
+                            var count=1;
+                            function buy(type){
+                                var p = cart.getProdect(prodect._id);
+                                if (p) {
+                                    count = p.count;
+                                }
+                                var ps = [];
+                                ps.push({"prodectId": prodect._id,
+                                    "prodectName": prodect.prodectName,
+                                    "categoryName": prodect.categoryId.categoryName,
+                                    "count": count,
+                                    "price": prodect.price,
+                                    img:prodect.img[0],stock:prodect.stock
+                                })
+                                $.post('/order/submitCart', {"prodects": JSON.stringify(ps),"type":type}, function (data) {
+                                    if (!data.errMsg) {
+                                        window.location.href = "/order/" + data.code;
+                                    } else {
+                                       alert(data.errMsg)
+                                    }
+                                })
+                            }
+                            $("#give").click(function(){
+                                buy(0)
+                            })
+                            $("#buy").click(function(){
+                                buy(1)
+                            })
 
-
-
-
+        include footer

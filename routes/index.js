@@ -2,19 +2,18 @@ var express = require('express');
 var router = express.Router();
 var adminManage = require('./manage/manage');
 var prodect=require('./prodect');
-var cart=require('./cart');
 var order=require('./order');
+var me=require('./me')
 
 var db = require("../db/Schema");
 var Schema = require("mongoose").Schema;
 router.get('/', function (req, res, next) {
     getProdectData(null, res)
 });
-
 router.use('/manage', adminManage);
 router.use('/prodect', prodect);
-router.use('/cart', cart);
 router.use('/order', order);
+router.use('/me', me);
 router.get('/:categoryId', function (req, res, next) {
     var categoryId = req.params.categoryId;
     if (categoryId) {

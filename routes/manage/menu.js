@@ -41,7 +41,7 @@ router.post('/edit', function (req, res, next) {
                 menu.text = text;
                 menu.href = href;
                 menu.iconCls = iconCls;
-                menu.parentId = parentId;
+                menu._parentId = parentId;
                 menu.status = status;
                 menu.save(function (err) {
                     if (!err) {

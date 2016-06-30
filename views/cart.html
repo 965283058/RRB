@@ -10,48 +10,6 @@
     <script type="text/javascript" src="/public/javascripts/cart.js"></script>
     <script type="text/javascript" src="/public/javascripts/jquery.min.js"></script>
     <script type="text/javascript" src="/public/javascripts/jquery-ui.js"></script>
-
-
-    <style>
-        .cartTable {
-            width: 100%;
-
-        }
-
-        .cartTable td {
-            border-bottom: 1px solid #AAAAAA;
-            padding: 5px;
-            cellspacing: 0;
-        }
-
-        .leftBorder {
-            border-left: 1px solid #F1F1F1;
-        }
-
-        .rightBorder {
-            border-right: 1px solid #F1F1F1;
-        }
-
-        .cartTable .br {
-            border-top: 2px solid #AAAAAA;
-            height: 3px;
-        }
-
-        .submitOrder {
-            background: #e54346;
-            display: block;
-            position: relative;
-            width: 96px;
-            height: 42px;
-            line-height: 42px;
-            color: #fff;
-            text-align: center;
-            font-size: 18px;
-            font-family: "Microsoft YaHei";
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body ng-app="app">
 <div class="w l top">
@@ -81,8 +39,7 @@
         <ul class="w l j-nav f14 fwb lili lile">
             <li><a href="/">首页</a></li>
             <li><a href="/me">个人中心</a></li>
-            <li><a href="/orderList">历史订单</a></li>
-            <li><a id="cart" href="/#" style="position: relative;">购物车<i class="cartTip">15</i></a>
+            <li><a id="cart" href="/#" style="position: relative;">购物车</a>
             </li>
         </ul>
     </div>
@@ -95,11 +52,12 @@
                 <a href="#">购物车</a></div>
         </div>
         <div class="w l good_info mtop10"><br></div>
-        <table class="cartTable" cellspacing="0" ng-controller="cartCtrl">
+        <table class="prodectTable" cellspacing="0" ng-controller="cartCtrl">
             <tr>
                 <th class="left pl5 leftBorder" style="width: 60px">
-                    <label><input type="checkbox"/>全选</label></th>
-                <th class="left pl5" style="width: 500px">商品</th>
+                    <label class="inputLabel"><input type="checkbox" ng-checked="cartClass.checkedAll"
+                                                     ng-click="checkAll($event)"/>全选</label></th>
+                <th class="left" style="width: 530px">商品</th>
                 <th class="right" style="width: 120px">单价</th>
                 <th class="center" style="width: 100px">数量</th>
                 <th class="right pr10" style="width: 150px">小计</th>
@@ -108,26 +66,38 @@
             <tr class="br">
                 <td colspan="7" style="border-width: 2px"></td>
             </tr>
-            <tr ng-repeat="prodect in cartClass.cart">
+            <tr ng-repeat="prodect in cartClass.cart" class="item">
                 <td class="left pl5 vtop leftBorder">
                     <input type="checkbox" ng-click="checkProd(prodect.prodectId)"
-                           ng-checked="prodect.check"/></td>
-                <td><img style="width: 65px;height: 65px;float: left" ng-src="{{prodect.img}}" alt=""/>
-
-                    <p ng-bind="prodect.prodectName"></p></td>
-                <td class="right" ng-bind="prodect.price.toFixed(2)"></td>
-                <td class="center">
-                    <input type="text" readonly style="width: 50px" pid="{{prodect.prodectId}}" ng-model="prodect.count"
-                           class="price"/>
+                           ng-checked="prodect.check"/>
                 </td>
-                <td class="right pr10" ng-bind="(prodect.price*prodect.count).toFixed(2)"></td>
-                <td class="center rightBorder"><a href="#" ng-click="delProdect(prodect.prodectId)">删除</a></td>
+                <td>
+                    <img ng-src="{{prodect.img}}"/>
+
+                    <p class="prodectName">商品名称:<a ng-bind="prodect.prodectName"
+                                                   ng-href="/prodect/{{prodect.prodectId}}"></a></p>
+
+                    <p class="prodectName categoryName">商品分类:<a ng-bind="prodect.categoryName"
+                                                                ng-href="/{{prodect.categoryId}}"></a></p>
+                </td>
+                <td class="right vtop  ptop20 price" ng-bind="prodect.price.toFixed(2)"></td>
+                <td class="center vtop">
+                    <input type="text" readonly style="width: 30px" pid="{{prodect.prodectId}}" ng-model="prodect.count"
+                           class="price" stock="{{prodect.stock}}"/>
+
+                    <p class="ptop5" ng-bind="'库存:'+prodect.stock"></p>
+                </td>
+                <td class="right pr10  vtop  ptop20 subtotal" ng-bind="(prodect.price*prodect.count).toFixed(2)"></td>
+                <td class="center rightBorder  vtop  ptop20"><a href="#" ng-click="delProdect(prodect.prodectId)">删除</a>
+                </td>
             </tr>
             <tr class="br">
-                <td><label><input type="checkbox"/>全选</label></td>
-                <td><a href="#">删除选中商品</a></td>
-                <td class="right" colspan="2">已选中5件商品</td>
-                <td class="right pr10" ng-bind="'￥'+cartClass.getTotal().toFixed(2)"></td>
+                <td>
+                    <label class="inputLabel"><input type="checkbox" ng-checked="cartClass.checkedAll"
+                                                     ng-click="checkAll($event)"/>全选</label></td>
+                <td><a href="javasrcipt:void(0)" ng-click="delCheckedProdect()">删除选中商品</a></td>
+                <td class="right" colspan="2">已选中<span ng-bind="cartClass.checkedTotal"></span>件商品</td>
+                <td class="right pr10 total" ng-bind="'￥'+cartClass.getTotal().toFixed(2)"></td>
                 <td class="center vcenter rightBorder submitOrder" ng-click="submitOrder()" colspan="2">结算</td>
             </tr>
         </table>
@@ -169,10 +139,13 @@
 
     app.controller("cartCtrl", function ($scope, $http) {
         $scope.cartClass = angular.copy(cart);
+        $scope.cartClass.checkedTotal = 0;
         var ids = [];
         for (var k in $scope.cartClass.cart) {
             ids.push($scope.cartClass.cart[k].prodectId);
         }
+        $scope.cartClass.checkedAll = false;
+
         $http.post('/cart/getProdects', {"ids": ids.join(";")}).success(function (data) {
             if (!data.errMsg) {
                 for (var j in data) {
@@ -182,16 +155,31 @@
                             $scope.cartClass.cart[k].price = data[j].price;
                             $scope.cartClass.cart[k].stock = data[j].stock;
                             $scope.cartClass.cart[k].img = data[j].img[0];
+                            $scope.cartClass.cart[k].categoryId = data[j].categoryId._id;
+                            $scope.cartClass.cart[k].categoryName = data[j].categoryId.categoryName;
                             $scope.cartClass.cart[k].check = false;
                             break;
                         }
                     }
                 }
             }
+            $scope.checkAll(null, true);
+
 
             $("input.price").spinner({
                 min: 1,
                 max: 200,
+                spin: function (event, ui) {
+                    var val = parseInt(ui.value);
+                    var stock = parseInt($(this).attr("stock"));
+                    if (val > stock) {
+                        $("#dialog-modal").dialog({
+                            height: 140,
+                            modal: true
+                        }).html("<p>最多可以购买" + stock + "件!</p>");
+                        return false;
+                    }
+                },
                 change: function (event, ui) {
                     var val = parseInt(event.target.value);
                     var id = $(this).attr("pid");
@@ -203,18 +191,30 @@
                             }
                         }
                         cart.update(id, val);
-                        cart.setTip();
+                        $scope.checkedTotal();
                     })
                 }
             });
         }).error(function (data) {
-            alert(data)
+            $("#dialog-modal").dialog({
+                height: 140,
+                modal: true
+            }).html("<p>" + data + "</p>");
         })
 
         $scope.delProdect = function (id) {
             cart.delProdect(id);
-            cart.setTip();
             $scope.cartClass.delProdect(id, false);
+            $scope.checkedTotal();
+        }
+        $scope.delCheckedProdect = function () {
+            for (var k in $scope.cartClass.cart) {
+                if ($scope.cartClass.cart[k].check) {
+                    cart.delProdect($scope.cartClass.cart[k].prodectId);
+                    $scope.cartClass.delProdect($scope.cartClass.cart[k].prodectId, false);
+                }
+            }
+            $scope.checkedTotal();
         }
 
         $scope.checkProd = function (id) {
@@ -224,6 +224,29 @@
                     break;
                 }
             }
+            var check = true;
+            for (var k in $scope.cartClass.cart) {
+                if (!$scope.cartClass.cart[k].check) {
+                    check = false;
+                    break;
+                }
+            }
+
+            $scope.cartClass.checkedAll = check;
+            $scope.checkedTotal();
+        }
+
+        $scope.checkAll = function (e, check) {
+            if (e) {
+                check = e.target.checked;
+            }
+
+            for (var k in $scope.cartClass.cart) {
+                $scope.cartClass.cart[k].check = check;
+            }
+            $scope.cartClass.checkedAll = check;
+            $scope.checkedTotal();
+
         }
 
         $scope.submitOrder = function () {
@@ -239,7 +262,7 @@
                     modal: true
                 }).html("<p>请至少选中一条商品!</p>");
             }
-            $http.post('/order/submitCart', {"prodects": p}).success(function (data, status) {
+            $http.post('/order/submitCart', {"prodects": JSON.stringify(p)}).success(function (data, status) {
                 if (!data.errMsg && status == 200) {
                     window.location.href = "/order/" + data.code;
                 } else {
@@ -256,7 +279,30 @@
             })
 
         }
+
+        $scope.checkedTotal = function () {
+            var total = 0;
+            for (var k in $scope.cartClass.cart) {
+                if ($scope.cartClass.cart[k].check) {
+                    total += $scope.cartClass.cart[k].count;
+                }
+            }
+            $scope.cartClass.checkedTotal = total;
+        }
     });
 </script>
+<div class="block10 w l">
+    <div class="w l foot f12">
+        <div class="w1016 c">
+            <div class="w l">
+                <ul class="lxnav lili lile center">
+                    <li>关于本站</li>
+                    <li><a href="/">网站首页</a></li>
+                    <li><a href="/manage/login.html">后台入口</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

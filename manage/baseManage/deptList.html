@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>菜单管理</title>
+    <title>部门管理</title>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta http-equiv="Cache-control" content="no-cache">
     <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
@@ -14,21 +14,12 @@
     <script type="text/javascript" src="../../public/javascripts/easyui-lang-zh_CN.js"></script>
     <script type="text/javascript" src="../js/extend.js"></script>
 
-    <style>
-        .dialog-button {
-            text-align: center;
-        }
-
-        .dialog-button a {
-            margin: auto 20px;
-        }
-    </style>
 </head>
 
 <body>
 <div class="searchBox clear">
     <div>
-        菜单名称:
+        部门名称:
         <input type="text" class="searchVal" id="name"/>
     </div>
     <div>
@@ -69,10 +60,10 @@
                 singleSelect: true,
                 remoteSort: true,
                 sortName: 'createTime',
-                url: '/manage/menu/list',
+                url: '/manage/dept/list',
                 queryParams: data,
                 idField: '_id',
-                treeField: 'text',
+                treeField: 'name',
                 columns: [[
                     {
                         field: '_id',
@@ -82,22 +73,8 @@
                         sortable: true
                     },
                     {
-                        field: 'text',
-                        title: '菜单名称',
-                        width: '12%',
-                        halign: 'center',
-                        sortable: true
-                    },
-                    {
-                        field: 'href',
-                        title: '菜单路径',
-                        width: '15%',
-                        halign: 'center',
-                        sortable: true
-                    },
-                    {
-                        field: 'iconCls',
-                        title: '菜单图标',
+                        field: 'name',
+                        title: '部门名称',
                         width: '12%',
                         halign: 'center',
                         sortable: true
@@ -159,7 +136,7 @@
                     handler: function () {
                         edit(null)
                     },
-                    text: "增加菜单",
+                    text: "增加部门",
                 }],
                 loadFilter: function (data, parentId) {
                     for (var i = 0; i < data.rows.length; i++) {
@@ -182,20 +159,20 @@
         $("#dialog-add").dialog({
             title: (row ? "【编辑菜单】" : "【增加菜单】"),
             width: 520,
-            height: 300,
+            height: 220,
             closed: false,
             closable: true,
-            content: $("#menuTemplate").html(),
+            content: $("#deptTemplate").html(),
             cache: false,
             modal: true,
             buttons: [{
                 text: '保存',
                 handler: function () {
                     var menuForm = $("#dialog-add").find("form[name=menuForm]");
-                    var postUrl = "/manage/menu/add";
+                    var postUrl = "/manage/dept/add";
                     var params = menuForm.serializeJson();
                     if (row) {
-                        postUrl = "/manage/menu/edit";
+                        postUrl = "/manage/dept/edit";
                         params.id = row._id;
                     }
                     if (menuForm.form("validate")) {
@@ -227,30 +204,21 @@
             }],
             onOpen: function () {
                 var that = $(this);
-                that.find("input[name=text]").validatebox({
+                that.find("input[name=name]").validatebox({
                     required: true,
-                    missingMessage: "菜单名称不可为空",
+                    missingMessage: "部门名称不可为空",
                     validateOnCreate: false,
                     width: 400
                 })
                 that.find("input[name=parentId]").combotree({
                     required: true,
-                    missingMessage: "请选择父级菜单",
+                    missingMessage: "请选择父级部门",
                     validateOnCreate: false,
                     editable: false,
                     width: 400,
                     value: "",
                     queryParams: {"parentId": 1},
-                    url: '/manage/menu/getTreeMenu',
-                    onChange: function (newValue, oldValue) {
-                        if (!newValue) {
-                            that.find("input[name=icon]").validatebox("enableValidation");
-                            that.find("input[name=href]").validatebox("disableValidation");
-                        } else {
-                            that.find("input[name=icon]").validatebox("disableValidation");
-                            that.find("input[name=href]").validatebox("enableValidation");
-                        }
-                    }
+                    url: '/manage/dept/getTreeDept'
                 })
                 var t = that.find("input[comboname=parentId]").combotree('tree');	// 获取树对象
                 var n = t.tree({
@@ -259,25 +227,10 @@
                         return data;
                     }
                 });
-                that.find("input[name=icon]").validatebox({
-                    required: true,
-                    missingMessage: "菜单图标不可为空",
-                    validateOnCreate: false,
-                    width: 400
-                })
-                that.find("input[name=href]").validatebox({
-                    required: true,
-                    missingMessage: "菜单路径不可为空",
-                    validateOnCreate: false,
-                    novalidate: true,
-                    width: 400
-                })
 
                 if (row) {
-                    that.find("input[name=text]").val(row.text);
+                    that.find("input[name=name]").val(row.name);
                     that.find("input[comboname=parentId]").combotree("setValue", row._parentId);
-                    that.find("input[name=icon]").val(row.iconCls);
-                    that.find("input[name=href]").val(row.href);
                     that.find("input[name=status]").prop("checked", row.status == 1)
                 }
             }
@@ -288,7 +241,7 @@
         $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该菜单吗？", function (r) {
             if (r) {
                 $.ajax({
-                    url: "/manage/menu/changeStatus",
+                    url: "/manage/dept/changeStatus",
                     type: "post",
                     data: {"id": id},
                     succ: function (res) {
@@ -300,13 +253,13 @@
         })
     }
 </script>
-<script id="menuTemplate" type="text/template">
+<script id="deptTemplate" type="text/template">
     <div class="dialogViewInfo">
         <form name="menuForm">
             <table border="0">
                 <tr>
-                    <td class="text-right"><span class="stress">*</span>菜单名称:</td>
-                    <td><input type="text" name="text"/>
+                    <td class="text-right"><span class="stress">*</span>部门名称:</td>
+                    <td><input type="text" name="name"/>
                     </td>
                 </tr>
                 <tr>
@@ -315,17 +268,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right"><span class="stress">*</span>菜单图标:</td>
-                    <td><input type="text" name="icon"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-right"><span class="stress">*</span>菜单路径:</td>
-                    <td><input type="text" name="href"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-right">商品状态:</td>
+                    <td class="text-right">部门状态:</td>
                     <td><label><input type="checkbox" checked="checked" value="1" name="status"/>是否立刻启用</label>
                     </td>
                 </tr>

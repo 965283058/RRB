@@ -20,7 +20,7 @@ router.use('/login', function (req, res, next) {
                         res.end(JSON.stringify({"status": 2, "message": "账号锁定中"}));
                         return;
                     }
-                    user.lastLoginTime = new Date();
+                    user.lastLoginTime =Date.now();
                     user.errCount = 0;
                     req.session.admin = user;
                     user.save();
@@ -106,7 +106,6 @@ router.post('/add', function (req, res, next) {
                     power: power,
                     status: 1,
                     creator: req.session.admin._id,
-                    createTime: Date.now(),
                     lastLoginTime: null
                 })
                 a.save(function (err) {

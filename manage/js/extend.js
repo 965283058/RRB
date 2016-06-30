@@ -245,21 +245,31 @@ $.createOnlyDiv = function (id, parentId) {
     return $("#" + id);
 }
 
-$.converToCNDate = function (str, format) {
-    if (!str) {
-        return "";
+$.converToCNDate = function (ms, format) {
+    if (!ms && ms !== 0) {
+        return '';
     }
+    var date = new Date();
+    date.setTime(ms);
+    var year = date.getFullYear(),
+        month = date.getMonth() + 1,
+        day = date.getDate(),
+        hh = date.getHours(),
+        mm = date.getMinutes(),
+        ss = date.getSeconds();
+
     format = format || "datetime";
     switch (format) {
         case "datetime":
-            return str.substring(0, 19).replace("T", " ");
+            return year + "-" + padLeft(month) + "-" + padLeft(day) + " " + padLeft(hh) + ":" + padLeft(mm) + ":" + padLeft(ss);
         case "date":
-            return str.substring(0, 10);
+            return year + "-" + padLeft(month) + "-" + padLeft(day);
         case "time":
-            return str.substring(11, 19);
+            return padLeft(hh) + ":" + padLeft(mm) + ":" + padLeft(ss);
         default :
             return "";
     }
+
     function padLeft(number) {
         if (parseInt(number) < 10) {
             return '0' + number;
@@ -267,7 +277,6 @@ $.converToCNDate = function (str, format) {
         return number;
     }
 };
-
 //在页面显示蒙层等待效果
 $.modalWait = function (options, param) {
     var modalWaitPanel = $("div.JP-modalWaitPanel");
@@ -354,3 +363,25 @@ $.fn.serializeJson = function () {
     });
     return serializeObj;
 };
+
+$(function(){
+    $("body").on("mouseover", "div.text-overflow", function (e) {
+        if($(e.target).width()< e.target.scrollWidth ){
+            var text = $(e.target).html();
+            if (text) {
+                $(e.target).tooltip({
+                    content: '<span style="color:#fff">' + text + '</span>',
+                });
+                $(e.target).tooltip("show");
+                $(e.target).tooltip('tip').css({
+                    backgroundColor: '#666',
+                    borderColor: '#666',
+                    "max-width": "300px",
+                    "word-break": "break-all"
+                });
+                $(e.target).tooltip("reposition");
+            }
+        }
+        return false;
+    })
+})

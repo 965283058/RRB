@@ -230,10 +230,20 @@
                         sortable: true
                     },
                     {
-                        field: 'logisticalId',
+                        field: 'logistical',
                         title: '物流方式',
-                        width: '100',
+                        width: '80',
                         align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            return value == 1 ? "送货" : value === 0 ? "自提" : "";
+                        },
+                    },
+                    {
+                        field: 'dept',
+                        title: '部门',
+                        width: '100',
+                        halign: 'center',
                         sortable: true,
                         formatter: function (value, row, index) {
                             if (typeof value == "object" && value) {
@@ -263,7 +273,7 @@
                                 for (var i = 0; i < value.length; i++) {
                                     a.push(value[i].prodectId.prodectName);
                                 }
-                                return a.join(";&nbsp;&nbsp;");
+                                return '<div class="text-overflow">' + a.join(";&nbsp;&nbsp;") + '</div>';
                             }
                         }
                     },
@@ -292,7 +302,10 @@
                         field: 'remark',
                         title: '下单留言',
                         width: '300',
-                        halign: 'center'
+                        halign: 'center',
+                        formatter: function (value, row, index) {
+                            return '<div class="text-overflow">' + value + '</div>';
+                        }
                     },
                 ]],
                 emptyMessage: "没有符合条件的记录",
@@ -303,12 +316,19 @@
                 onExpandRow: function (index, row) {
                     var selector = $("#ProdectDetail_" + index);
                     if (selector.css("dispaly") != 'none') {
-                        for (var i = 0; i < row.prodectList.length; i++) {
-                            row.prodectList[i].number = i + 1;
+                        var data = {"total": row.prodectList.length, "rows": row.prodectList};
+                        var count = 0;
+                        var total = 0;
+                        for (var i = 0; i < data.rows.length; i++) {
+                            data.rows[i].number = i + 1;
+                            count += data.rows[i].count;
+                            total += data.rows[i].count * data.rows[i].price;
                         }
+                        data.footer = [{"count": "总数量:&nbsp;" + count, "total": "合计:&nbsp;"+total.toFixed(2)}];
                         selector.datagrid({
-                            data: row.prodectList,
+                            data: data,
                             width: 580,
+                            showFooter: true,
                             columns: [[
                                 {
                                     field: 'number',
@@ -321,7 +341,8 @@
                                     title: '商品ID',
                                     hidden: true,
                                     formatter: function (value, row, index) {
-                                        return value._id;
+                                        if(typeof value=="object")
+                                            return value._id;
                                     }
                                 },
                                 {
@@ -330,7 +351,8 @@
                                     width: '265',
                                     align: 'center',
                                     formatter: function (value, row, index) {
-                                        return row.prodectId.prodectName;
+                                        if(typeof row.prodectId=="object")
+                                            return row.prodectId.prodectName
                                     }
                                 },
                                 {
@@ -340,7 +362,8 @@
                                     halign: 'center',
                                     align: 'right',
                                     formatter: function (value, row, index) {
-                                        return (parseFloat(value) || 0).toFixed(2)
+                                        if(typeof value!="undefined")
+                                            return (parseFloat(value) || 0).toFixed(2)
                                     }
                                 },
                                 {
@@ -351,12 +374,16 @@
                                     align: 'right',
                                 }, {
                                     field: 'total',
-                                    title: '商品总价',
+                                    title: '商品小计',
                                     width: '90',
                                     halign: 'center',
                                     align: 'right',
                                     formatter: function (value, row, index) {
-                                        return ((parseFloat(row.price) || 0) * (parseInt(row.count) || 0)).toFixed(2);
+                                        if(typeof row.price=="number"&&typeof row.count=="number"){
+                                            return ((parseFloat(row.price) || 0) * (parseInt(row.count) || 0)).toFixed(2);
+                                        }else{
+                                            return value;
+                                        }
                                     }
                                 },
                             ]],

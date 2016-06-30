@@ -30,6 +30,12 @@ $(function () {
             for (var k in rootsData) {
                 $(rootsData[k].target).addClass(rootsData[k].iconCls);
             }
+        },
+        loadFilter:function(data,parent){
+            for(var k in data){
+                data[k].state="closed";
+            }
+            return data;
         }
     });
 });

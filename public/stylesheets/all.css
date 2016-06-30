@@ -8,7 +8,7 @@ body{ color:#999999;}
 .h{height:100%;}
 .w1016{width:1016px;}
 .lili li{display:inline;}
-.lile li{ float:left;}
+.lile li{ display: inline-block}
 .k2 li{ margin:0 2px;}
 .k5 li{ margin:0 5px;}
 .lich li a{ color:#666666;}
@@ -35,8 +35,11 @@ em,i{ font-style:normal;}
 a{text-decoration:none;}
 li,dt,dd{list-style:none;}
 .pl5{ padding-left:5px;}
+.pl10{ padding-left:10px;}
 .pr5{ padding-left:5px;}
 .pr10{ padding-right:10px;}
+.pr15{ padding-right:15px;}
+.pa0{ padding:0;}
 .pa5{ padding:0 5px;}
 .pa10{ padding:0 10px;}
 .mtop5{margin-top:5px;}
@@ -47,6 +50,8 @@ li,dt,dd{list-style:none;}
 .ptop5{padding-top:5px;}
 .ptop3{padding-top:3px;}
 .ptop10{padding-top:10px;}
+.ptop15{padding-top:15px;}
+.ptop20{padding-top:20px;}
 a img{ border:none;}
 .ullial li a,.ullial li em{float:left;}
 .letterp1{letter-spacing:1px;}
@@ -89,7 +94,7 @@ a:hover{ color:#ff699e;}
 
 
 /*ÍøÕ¾µ×²¿*/
-.foot{ border-top:2px solid #f55e95; }
+.foot{ border-top:2px solid #D2AA6A; }
 .footnav,.lxnav,.bq{ height:22px; padding:10px 0; line-height:22px;}
 .footnav li,.lxnav li{ margin:0 5px;}
 .sx{ padding-top:2px; background:url(../images/dxbg.gif) no-repeat;}

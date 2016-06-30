@@ -42,15 +42,15 @@ router.use('/list', function (req, res, next) {
     if (beginDate) {
         var bDate = new Date(beginDate);
         bDate.setHours(0, 0, 0, 0);
-        a.createTime = {"$gte": bDate}
+        a.createTime = {"$gte": bDate.getTime()}
     }
     if (endDate) {
         var arr = endDate.split("-");
         var date = new Date(arr[0], parseInt(arr[1], 10) - 1, arr[2]).getTime() + 86400000;
         if (a.createTime) {
-            a.createTime["$lt"] = new Date(date);
+            a.createTime["$lt"] = date;
         } else {
-            a.createTime = {"$lt": new Date(date)};
+            a.createTime = {"$lt": date};
         }
     }
     db.Order.count(a, function (err, count) {
@@ -63,7 +63,7 @@ router.use('/list', function (req, res, next) {
                 s[sort] = (order == 'desc' ? -1 : 1);
                 query.sort(s);
             }
-            query.populate('prodectList.prodectId', 'prodectName').populate('logisticalId', 'name').populate('sender', 'email').sort({"_id": -1}).exec(function (error, data) {
+            query.populate('prodectList.prodectId', 'prodectName').populate('dept', 'name').populate('sender', 'email').sort({"_id": -1}).exec(function (error, data) {
                 if (!error) {
                     res.end(JSON.stringify({"rows": data || [], "page": page, "total": count}));
                 } else {

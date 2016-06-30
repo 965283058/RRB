@@ -20,7 +20,6 @@ router.use('/list', function (req, res, next) {
                 query.skip((page - 1) * rows);
             }
             if (sort) {
-               // sort = (sort !== "createTime_timestamp" ? sort : "createTime");
                 var a = {};
                 a[sort] = (order == 'desc' ? -1 : 1);
                 query.sort(a);
@@ -45,8 +44,7 @@ router.post('/add', function (req, res, next) {
         categoryName: name,
         categoryPrice: price,
         status: status,
-        creator: 1,
-        createTime: new Date()
+        creator: req.session.admin._id
     })
     c.save(function (err) {
         if (!err) {

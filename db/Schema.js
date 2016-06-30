@@ -16,9 +16,9 @@ var ProdectSchema = new Schema({
     remark: String,
     status: Number,  //0下架 1正常
     creator: {type: Schema.Types.ObjectId, ref: 'Admin'},
-    createTime: Date,
+    createTime: {type: Number, default: Date.now()},
     lastEidtor: {type: Schema.Types.ObjectId, ref: 'Admin'},
-    lastEidtTime: Date
+    lastEidtTime: Number
 });
 exports.Prodect = db.model('Prodect', ProdectSchema);
 
@@ -28,8 +28,8 @@ var CategorySchema = new Schema({
     categoryName: String,
     categoryPrice: Number,
     status: Number, //0禁用 1正常
-    creator: Number,
-    createTime: Date
+    creator: {type: Schema.Types.ObjectId, ref: 'Admin'},
+    createTime: {type: Number, default: Date.now()},
 });
 /*CategorySchema.set('toJSON', {virtuals: true})
  CategorySchema.set('toObject', {virtuals: true})
@@ -46,46 +46,25 @@ exports.Category = db.model('Category', CategorySchema);
 var OrderSchema = new Schema({
     jobNo: String,
     name: String,
+    dept: {type: Schema.Types.ObjectId, ref: 'Dept'}, //物流方式
     type: Number,//0 送人 1自用
-    logisticalId: {type: Schema.Types.ObjectId, ref: 'Logistical'}, //物流方式
+    logistical: Number,//物流方式 0 自提 1送货
     prodectList: [{
         prodectId: {type: Schema.Types.ObjectId, ref: 'Prodect'},
         price: Number,
         count: Number,
     }],
     money: Number,
-    createTime: Date,
+    createTime: {type: Number, default: Date.now()},
     sender: {type: Schema.Types.ObjectId, ref: 'Admin'},//发货人
-    sendTime: Date,
+    sendTime: Number,
     remark: String,
     status: Number  //-2删除 -1取消 0创建 1发货 2已评价
 });
 
-OrderSchema.statics.sendProdect = function (id, callback) {
-    MongoClient.connect(DB_CONN_STR, function (err, db) {
-        if (!err) {
-            db.eval('SendProdect(' + id + ')', function (err, result) {
-                if (err) {
-                    callback(err, null)
-                } else {
-                    callback(null, result);
-                }
-                db.close();
-            });
-        } else {
-            callback(err, null)
-        }
-    });
-}
 
 exports.Order = db.model('Order', OrderSchema);
 
-//物流
-var LogisticalSchema = new Schema({
-    name: String,
-    status: Number   //0禁用 1正常
-});
-exports.Logistical = db.model('Logistical', LogisticalSchema);
 
 //地址
 var AddessSchema = new Schema({
@@ -100,18 +79,11 @@ var EvaluateSchema = new Schema({
     jobNo: String,
     level: Number,
     content: String,
-    createTime: Date,
-    status: Number   //0禁用 1正常
+    createTime: {type: Number, default: Date.now()},
+    status: Number,   //0禁用 1正常
 });
 exports.Evaluate = db.model('Evaluate', EvaluateSchema);
 
-
-//购物车
-var CartSchoema = new Schema({
-    jobNo: String,
-    prodectList: [{prodectId: {type: Schema.Types.ObjectId, ref: 'Prodect'}, count: Number}],
-});
-exports.Cart = db.model('Cart', CartSchoema);
 
 //管理员
 var AdminSchema = new Schema({
@@ -123,8 +95,8 @@ var AdminSchema = new Schema({
     power: [String],
     status: Number,
     creator: {type: Schema.Types.ObjectId, ref: 'Admin'},
-    createTime: {type: Date, default: Date.now()},
-    lastLoginTime: {type: Date}
+    createTime: {type: Number, default: Date.now()},
+    lastLoginTime: Number
 });
 exports.Admin = db.model('Admin', AdminSchema);
 
@@ -136,7 +108,7 @@ var MenuSchema = new Schema({
     _parentId: String,
     status: Number,
     creator: {type: Schema.Types.ObjectId, ref: 'Admin'},
-    createTime: {type: Date, default: Date.now()}
+    createTime: {type: Number, default: Date.now()}
 });
 exports.Menu = db.model('Menu', MenuSchema);
 
@@ -145,6 +117,15 @@ exports.Menu = db.model('Menu', MenuSchema);
 var DeptSchema = new Schema({
     name: String,
     _parentId: String,
-    status: Number   //0禁用 1正常
+    status: Number,   //0禁用 1正常
+    creator: {type: Schema.Types.ObjectId, ref: 'Admin'},
+    createTime: {type: Number, default: Date.now()}
 });
 exports.Dept = db.model('Dept', DeptSchema);
+
+//收藏
+var LikeSchema = new Schema({
+    jobNO: String,
+    prodectList: [{type: Schema.Types.ObjectId, ref: 'Prodect'}]
+});
+exports.Like = db.model('Like', LikeSchema);

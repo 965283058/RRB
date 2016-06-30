@@ -47,8 +47,7 @@ router.post('/add', upload.array('imgFile', 30), function (req, res, next) {
         img: [],
         remark: remark,
         status: 1,  //0下架 1正常,
-        creator: req.session.admin._id,
-        createTime: new Date()
+        creator: req.session.admin._id
     });
     if (req.files.length > 0) {
         for (var i = 0; i < req.files.length; i++) {
@@ -84,7 +83,7 @@ router.post('/edit', upload.array('imgFile', 30), function (req, res, next) {
             prodect.remark = remark;
             prodect.img = img;
             prodect.lastEidtor = req.session.admin._id;
-            prodect.lastEidtTime = new Date();
+            prodect.lastEidtTime = Date.now();
             if (req.files.length > 0) {
                 for (var i = 0; i < req.files.length; i++) {
                     prodect.img.push(req.files[i].path.replace("..", ""));
@@ -118,7 +117,7 @@ router.use('/list', function (req, res, next) {
 
 
     var a = {};
-    if(a){
+    if (a) {
         a.prodectName = new RegExp(name);
     }
     if (categoryId) {
@@ -130,15 +129,15 @@ router.use('/list', function (req, res, next) {
     if (beginDate) {
         var bDate = new Date(beginDate);
         bDate.setHours(0, 0, 0, 0);
-        a.createTime = {"$gte":bDate}
+        a.createTime = {"$gte": bDate.getTime()}
     }
     if (endDate) {
         var arr = endDate.split("-");
         var date = new Date(arr[0], parseInt(arr[1], 10) - 1, arr[2]).getTime() + 86400000;
         if (a.createTime) {
-            a.createTime["$lt"] = new Date(date);
+            a.createTime["$lt"] = date;
         } else {
-            a.createTime = {"$lt": new Date(date)};
+            a.createTime = {"$lt": date};
         }
     }
     db.Prodect.count(a, function (err, count) {

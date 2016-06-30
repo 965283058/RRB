@@ -1,5 +1,6 @@
 function cart() {
     this.get();
+    this.setTip();
 }
 cart.prototype.addProdect = function (id, count, price) {
     this.get();
@@ -23,6 +24,14 @@ cart.prototype.existsProdect = function (id) {
         }
     }
     return false;
+}
+cart.prototype.getProdect = function (id) {
+    for (var i = 0; i < this.cart.length; i++) {
+        if (this.cart[i].prodectId == id) {
+            return this.cart[i];
+        }
+    }
+    return null;
 }
 cart.prototype.update = function (id, count) {
     for (var i = 0; i < this.cart.length; i++) {
@@ -81,7 +90,7 @@ cart.prototype.save = function () {
     } else {
         document.cookie = "RRB_Cart=" + encodeURIComponent(str) + ";";
     }
-    console.info(str)
+    this.setTip();
 }
 cart.prototype.get = function () {
     try {
@@ -104,14 +113,16 @@ cart.prototype.get = function () {
 
 cart.prototype.setTip = function () {
     var cartEle = $("#cart");
-    var count = this.getTotalCount();
-    if (count > 0) {
-        if (cartEle.find(".cartTip").length == 0) {
-            cartEle.append('<i class="cartTip">' + count + '</i>');
+    if (cartEle.length > 0) {
+        var count = this.getTotalCount();
+        if (count > 0) {
+            if (cartEle.find(".cartTip").length == 0) {
+                cartEle.append('<i class="cartTip">' + count + '</i>');
+            } else {
+                cartEle.find(".cartTip").html(count)
+            }
         } else {
-            cartEle.find(".cartTip").html(count)
+            cartEle.find(".cartTip").remove();
         }
-    } else {
-        cartEle.find(".cartTip").remove();
     }
 }

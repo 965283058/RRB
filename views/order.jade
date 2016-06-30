@@ -1,187 +1,218 @@
 doctype html
 html
     head
-        title= 'ÈËÈË±Ò½»Ò×Æ½Ì¨-ÉÌÆ·ÏêÇé'
-        script(type="text/javascript",src="/public/javascripts/jquery.pack.js")
-        script(type="text/javascript",src="/public/javascripts/jQuery.blockUI.js")
-        script(type="text/javascript",src="/public/javascripts/jquery.SuperSlide.js")
-        script(type="text/javascript",src="/public/javascripts/cart.js")
-        script(type="text/javascript",src="/public/javascripts/jquery.fly.min.js")
-        //[if lte IE 9]
-        script(type="text/javascript",src="/public/javascripts/requestAnimationFrame.js")
-        //[endif]
+        title= 'äººäººå¸äº¤æ˜“å¹³å°-å•†å“è¯¦æƒ…'
         link(rel='stylesheet', href='/public/stylesheets/all.css')
         link(rel='stylesheet', href='/public/stylesheets/style.css')
+        link(rel='stylesheet', href='/public/javascripts/themes/bootstrap/easyui.css')
+        link(rel='stylesheet', href='/public/javascripts/themes/icon.css')
+        script(type="text/javascript",src="/public/javascripts/jquery.min.js")
+        script(type="text/javascript",src="/public/javascripts/jquery.easyui.min.js")
+        script(type="text/javascript",src="/public/javascripts/cart.js")
     body
-        .w.l.top
-            .c.w1016.f12.lh26
-                ul.l
-                    li»¶Ó­·ÃÎÊÈËÈË±Ò½»Ò×Æ½Ì¨£¡
-                ul.r
-                    li
-                        a¼ÓÈëÊÕ²Ø¼Ğ
-                    li
-                        aÉèÎªÖ÷Ò³
-        div.c.w1016
-            div.w.l
-                div.logo.l
-                    img(alt="nofollow", src="/public/images/logo.png")
-                div.search.r
-                    div.seak.l.bga.bgc.bgn.f12
-                        em ÉÌÆ·
-                        input.keyword.nbg.nbr(type=text,placeholder="ÇëÊäÈëÄúÒªËÑË÷µÄÉÌÆ·")
-                        input#btnSerach.seadp.l.nbg.nbr.cup(type=submit)
-        div.w.l.nav.bga.bgc
-            div.w1016.c
-                ul.w.l.j-nav.f14.fwb.lili.lile
-                    li
-                        a(href="/")Ê×Ò³
-                    li
-                        a(href="/me")¸öÈËÖĞĞÄ
-                    li
-                        a(href="/orderList")ÀúÊ·¶©µ¥
-                    li
-                        a#cart(href="/cart",style="position: relative;")¹ºÎï³µ
+        include header
         div.block10.w.l
         div.w1016.c
             div.w.l.goodshow
                 div.w.l.typelist
                     div.pos.l.f12
-                        a(href="/")ÈËÈË±Ò½»Ò×Æ½Ì¨Ê×Ò³
-                &nbsp;&gt;&nbsp;
-    a(href='/' + prodect.categoryId._id)=prodect.categoryId.categoryName
-&nbsp;&gt;&nbsp;
-    a(href='#')=prodect.prodectName
-div.w.l.good_info.mtop10
-    br
-div.good_tu.l
-    div.tabBox.w.l
-        div.hd.l
-            ul
-                each img,index in prodect.img
-                    if(index == 0)
-                        li.on
-                            img(src=img)
-                    else if(index < 5)
-                        li.mtop6
-                            img(src=img)
-        div.bd.l
-            ul#imgPreviewList
-                each img,index in prodect.img
-                    li.on
-                        img.imgPrview(src=img )
-script.
-    $(".tabBox").slide({mainCell: ".bd ul"});
-div.good_attr.l
-    h1#prodectName(prodectId=prodect._id)=prodect.prodectName
-    p.w.l.lh26.mtop5
-        span.gar_jg
-            label="ÊÛ¼Û:"
-            i="£¤"
-            em#prodectPrice=prodect.price.toFixed(2)
+                        a(href="/")äººäººå¸äº¤æ˜“å¹³å°é¦–é¡µ
+                        &nbsp;&gt;&nbsp;
+                        a(href='#')="æäº¤è®¢å•"
+        div.w.l.good_info.mtop10
         br
-        span.gar_pj="ÉÌÆ·¿â´æ:"
-        em=prodect.stock
-        br
-        span.gar_pj="ÓÃ»§ÆÀ¼Û:(ÒÑ¾­ÓĞ"
-        em=evaluates.length
-        span="¸öÈËÆÀ¼Û)"
-        br
-    p.p_sx.l.mtop5
-        span="ÈËÆøÖ¸Êı:"
-        em=1999
-        br
-        span.shouchang="ÊÕ²ØÉÌÆ·"
-    div.w.l.gms
-        if(prodect.stock > 0)
-            span#addCart.rrb-btn.addCart="¼ÓÈë¹ºÎï³µ"
-            span#gwbtn.rrb-btn.buy="Á¢¿Ì¹ºÂò"
-            span#gtbbtn.rrb-btn.give="ÎÒÒªËÍÈË"
-        else
-            span#gtbbtn.rrb-btn.addCart.disabled="¼ÓÈë¹ºÎï³µ"
-            span#gwbtn.rrb-btn.buy.disabled="Á¢¿Ì¹ºÂò"
-            span#gtbbtn.rrb-btn.give.disabled="ÎÒÒªËÍÈË"
-div.w.l.good_info.mtop10
-    br
-div.good_con.w.l
-    div.good_xg.l
-        div.l.w188.f12#history_div
-            p.dpbt="ÉÌÆ·ÍÆ¼ö"
-            ul#history_list
-                each prod in proposal
-                    li
-                        a(href="/prodect/" + prod._id,target="_blank")
-                            img(src=prod.img[0],alt=prod.prodectName)
-                        p.hisbt
-                            a(href="/prodect/" + prod._id,target="_blank",title=prod.prodectName)=prod.prodectName
-                        p="ÊÛ¼Û£º"
-                        em="£¤" + prod.price.toFixed(2)
-    div.good_xx.l
-        ul.basicTitle
-            li.current(index=1)
-                span="ÉÌÆ·ÏêÇé"
-            li(index=2)
-                span="ÉÌÆ·ÆÀ¼Û"
-            li(index=3)
-                span="¹ºÂò¼ÇÂ¼"
-        div.details(tabIndex=1)
-            ul.suxing
-                li="ÉÌÆ·½éÉÜ:" + prodect.remark
-            div.xianqing.top10
-                div.l.xianqing_et
-                    div.l.xianqing_tie.f14="±¦±´ÏêÇé"
-                    div.l.xianqing_nr.f14
-                        each img in prodect.img
-                            img(src=img,alt=prodect.prodectName,style="wdith:700px")
-        div.good_child_list(tabIndex=2)="22222222222222222222222"
-        div.good_child_list(tabIndex=3)="33333333333333333333333"
-        div.cartMsg="ÒÑ³É¹¦¼ÓÈë¹ºÎï³µ!"
-        script.
-            $("ul.basicTitle li").click(function () {
-                $("ul.basicTitle li").removeClass("current");
-                var index = $(this).addClass("current").attr("index");
-                $("div[tabIndex]").each(function () {
-                    if ($(this).attr("tabIndex") == index) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                })
-            })
-            var cart = new cart();
-            cart.setTip();
-            var offset = $("#cart").offset();
-            $("#addCart").click(function () {
-                if (!$(this).hasClass("disabled")) {
-                    var id = $("#prodectName").attr("prodectId");
-                    var price = parseFloat($("#prodectPrice").html());
-                    if (id && !isNaN(price)) {
-                        cart.addProdect(id, 1, price);
-                        cart.save();
-                        var addcar = $(this);
-                        var img = $("#imgPreviewList li:visible").find('img').attr('src');
-                        var flyer = $('<img class="u-flyer" src="' + img + '">');
-                        flyer.fly({
-                            start: {
-                                left: event.pageX,
-                                top: event.pageY
-                            },
-                            end: {
-                                left: offset.left + 10,
-                                top: offset.top - 15,
-                                width: 0,
-                                height: 0
-                            },
-                            onEnd: function () {
-                                cart.setTip();
-                                $(".cartMsg").show().animate({width: '250px'}, 200)
-                                        .fadeOut(1000, function () {
-                                            $(".cartMsg").width(0)
-                                        });
-                            }
-                        });
-                    } else {
-                        alert("¼ÓÈëÊ§°Ü")
-                    }
-                }
-            })
+        div.w1016.c
+            h2="å¡«å†™å¹¶æ ¸å¯¹è®¢å•ä¿¡æ¯"
+            div.tabBox.w.l(style="border-bottom:0;")
+                form#orderForm
+                    ul.orderInfo
+                        li
+                            h3.title= "æ”¶è´§äººä¿¡æ¯"
+                            div
+                                label.title="å·¥å·:"
+                                input.textBox(type="text",name="jobNO")
+                                label.title="å§“å:"
+                                input.textBox(type="text",name="name")
+                                label.title="éƒ¨é—¨:"
+                                select#dept(name="dept")
+                        li
+                            h3.title= "è®¢å•ç±»å‹:"
+                            div
+                                label.title= "è¯·é€‰æ‹©è®¢å•ç±»å‹:"
+                                label.inputLabel.pr15
+                                    input(type="radio",name="type",value="1",checked=true)
+                                    ="è‡ªç”¨"
+                                label.inputLabel
+                                    input(type="radio",name="type",value="0")
+                                    ="é€äºº"
+                        li
+                            h3.title= "æ”¶è´§æ–¹å¼"
+                            div
+                                label.title= "è¯·é€‰æ‹©æ”¶è´§æ–¹å¼:"
+                                label.inputLabel.pr15
+                                    input(type="radio",name="logistical",value="0",checked=true)
+                                    ="è‡ªæ"
+                                label.inputLabel
+                                    input(type="radio",name="logistical",value="1")
+                                    ="é€è´§"
+                        li#addess(style="display:none")
+                            h3.title= "æ”¶è´§åœ°å€"
+                            div
+                                label.title= "è¯·é€‰æ‹©æ”¶è´§åœ°å€:"
+                                select#addessCombo(name="addess",data-options="")
+                                    //option(value="")="è¯·é€‰æ‹©"
+                                    each item in addessList
+                                        option(value=item._id)=item.name
+                        li#since
+                            h3.title= "è‡ªæè¯´æ˜"
+                            div="ç§‘æŠ€å¤§å¦18å±‚-äººåŠ›èµ„æºéƒ¨ é«˜é¹¤ æ‰‹æœºå·13520911733"
+                        li
+                            h3.title= "å•†å“ä¿¡æ¯"
+                            div.goodshow
+                                table.prodectTable(cellspacing="0",style="border-top: 1px solid #ccc;border-left: 1px solid #ccc;")
+                                    tr
+                                        th.left.pl5.leftBorder(style="width: 550px")="å•†å“"
+                                        th.right(style="width: 120px")="ä»·æ ¼æ•°é‡"
+                                        th.right(style="width: 100px")="åº“å­˜"
+                                        th.right.pr10.rightBorder(style="width: 80px")="å°è®¡"
+                                    tr.br
+                                        td(colspan="4",style="border-width: 2px")
+                                    each prodect in prodects
+                                        tr.item
+                                            td.leftBorder(style="padding-left:10px")
+                                                img(src=prodect.img)
+                                                p.prodectName="å•†å“åç§°:"
+                                                    a(href="/prodect/"+prodect.prodectId)=prodect.prodectName
+                                                p.prodectName.categoryName="å•†å“åˆ†ç±»:"
+                                                    a(href="/"+prodect.categoryId)=prodect.categoryName
+                                            td.right.vtop.ptop20.price
+                                                span(style="color:#e54346;margin-right:12px")=prodect.price.toFixed(2)
+                                                ="Ã—"+prodect.count
+                                            td.right.vtop=prodect.stock
+                                            td.right.vtop.ptop20.subtotal(style="padding-right:10px")=(prodect.price*prodect.count).toFixed(2)
+                                    tr.br
+                                        td.mg-r-5(style="padding:1px 3px;")
+                                            ="ä¸‹å•ç•™è¨€:"
+                                            textarea(name="remark",style="width:590px;float:right;height:51px;line-height:17px",maxlength="500")
+                                        td(colspan="2").pa0.right.rightBorder.total(style="padding-right:10px")="æ€»ä»·ï¼šï¿¥"+total.toFixed(2)
+                                        td#submitOrder.center.vcenter.rightBorder.submitOrder="æäº¤è®¢å•"
+                            script.
+                                $.fn.serializeJson = function () {
+                                    var serializeObj = {};
+                                    var array = this.serializeArray();
+                                    var str = this.serialize();
+                                    $(array).each(function () {
+                                        if (serializeObj[this.name]) {
+                                            if ($.isArray(serializeObj[this.name])) {
+                                                serializeObj[this.name].push(this.value);
+                                            } else {
+                                                serializeObj[this.name] = [serializeObj[this.name], this.value];
+                                            }
+                                        } else {
+                                            serializeObj[this.name] = this.value;
+                                        }
+                                    });
+                                    return serializeObj;
+                                };
+                                $("#orderForm input[name=jobNO]").validatebox({
+                                    required: true,
+                                    missingMessage: "è¯·è¾“å…¥æ‚¨çš„å·¥å·!",
+                                    validateOnCreate: false
+                                })
+                                $("#orderForm input[name=name]").validatebox({
+                                    required: true,
+                                    missingMessage: "è¯·è¾“å…¥æ‚¨çš„å§“å!",
+                                    validateOnCreate: false
+                                })
+                                $("#dept").combo({
+                                    width:180,
+                                    editable:false,
+                                    required:true,
+                                    missingMessage:'è¯·é€‰æ‹©éƒ¨é—¨',
+                                    validateOnCreate: false
+                                });
+                                $("#addessCombo").combobox({
+                                    width:180,
+                                    editable:false,
+                                    panelHeight:130,
+                                    required:true,
+                                    missingMessage:'è¯·é€‰æ‹©åœ°å€',
+                                    validateOnCreate: false,
+                                    value:"",
+                                    novalidate:true
+                                });
+                                $("#orderForm input[name=type]").click(function(){
+                                    if($(this).val()=="0"){
+                                        $("#orderForm input[name=logistical][value='0']").click();
+                                    }
+                                })
+
+                                $("#orderForm input[name=logistical]").click(function(){
+                                    var val=$(this).val();
+                                    var type=$("#orderForm input[name=type]:checked").val();
+                                    if(val=="1"&&type=="0"){
+                                        $.messager.alert("æç¤º","è®¢å•ç±»å‹ä¸ºé€äººçš„åªèƒ½æ”¶è´§æ–¹å¼åªèƒ½é€‰æ‹©è‡ªæ!","info")
+                                        return false;
+                                    }
+                                    if(val=="1"){
+                                        $("#addess").show();
+                                        $("#addessCombo").combobox("enableValidation");
+                                        $("#since").hide();
+
+                                    }else{
+                                        $("#addessCombo").combobox("disableValidation").combobox("setValue","");
+                                        $("#addess").hide();
+                                        $("#since").show();
+                                    }
+                                })
+
+
+                                var data =  !{JSON.stringify(deptList)};
+                                var html=[];
+                                for(var i=0;i<data.length;i++){
+                                    html.push("<dl>");
+                                    if(data[i].children&&data[i].children.length>0){
+                                        html.push("<dt>"+data[i].name+"</dt>");
+                                        for(var j=0;j<data[i].children.length;j++){
+                                            html.push("<dd><label><input type='radio' name='dept' value='"+data[i].children[j].id+"' />"
+                                                    +data[i].children[j].name+"</label></dd>");
+                                        }
+                                    }else{
+                                        html.push("<dt><label><input type='radio' name='dept' value='"+data[i].id+"'/>"
+                                                +data[i].name+"</label></dt>");
+                                    }
+                                    html.push("</dl>");
+                                }
+                                var deptPanel=$('#dept').combo('panel').append(html.join(""));
+                                deptPanel.on("click","input[type=radio]",function() {
+                                    var v = $(this).val();
+                                    var s = $(this).parents('label').text();
+                                    $('#dept').combo('setValue', v).combo('setText', s).combo('hidePanel');
+                                });
+
+                                var prodectSid =  '!{id}';
+                                var prodectArr = !{JSON.stringify(prodects)};
+                                var cart = new cart();
+                                $("#submitOrder").click(function(){
+                                    if ($("#orderForm").form("validate")) {
+                                           var data=$("#orderForm").serializeJson();
+                                            data.id=prodectSid.toString();
+                                            $.post("/order/submitOrder",data,function(data){
+                                                if(!data.errMsg){
+                                                    for(var i=0;i<prodectArr.length;i++){
+                                                        cart.delProdect(prodectArr[i].prodectId,false);
+                                                    }
+                                                    cart.save();
+                                                    $.messager.alert("æç¤º","æäº¤æˆåŠŸ", "info");
+                                                    window.location="/me";
+                                                }else{
+                                                    $.messager.alert("é”™è¯¯", data.errMsg, "error");
+                                                }
+                                            })
+                                    }
+                                })
+                                if(!{type}==0){
+                                    $("#orderForm input[name=type][value='0']").prop("checked",true);
+                                }
+
+        include footer
