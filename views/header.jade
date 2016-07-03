@@ -14,8 +14,9 @@ div.c.w1016
     div.search.r
       div.seak.l.bga.bgc.bgn.f12
         em 商品
-        input.keyword.nbg.nbr(type=text,placeholder="请输入您要搜索的商品")
-        input#btnSerach.seadp.l.nbg.nbr.cup(type=submit)
+        form(action="/search")
+          input.keyword.nbg.nbr(type=text,placeholder="请输入您要搜索的商品",name="val")
+          input.seadp.l.nbg.nbr.cup(type="submit",value="")
 div.w.l.nav.bga.bgc
   div.w1016.c
     ul.w.l.j-nav.f14.fwb.lili.lile

@@ -2,9 +2,10 @@ doctype html
 html
     head
         title= '人人币交易平台-商品列表'
-        script(type="text/javascript",src="/public/javascripts/jquery.pack.js")
         link(rel='stylesheet', href='/public/stylesheets/all.css')
         link(rel='stylesheet', href='/public/stylesheets/style.css')
+        script(type="text/javascript",src="/public/javascripts/jquery.min.js")
+        script(type="text/javascript",src="/public/javascripts/cart.js")
     body
         include header
         div.block10.w.l
@@ -20,3 +21,5 @@ html
                     div.category.center(style="margin-bottom:5px")
                         h1(style="color:#e20808")="出错了："+message
 include footer
+script.
+    var cart=new cart();

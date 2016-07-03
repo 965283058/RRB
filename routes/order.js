@@ -20,6 +20,12 @@ router.get('/:id', function (req, res, next) {
     var id = req.params.id;
     var prodects = req.session["prodect_" + id];
     var type = req.session["order_" + id];
+    if (!prodects) {
+        res.render('error', {
+            message: "未找到订单,请返回购物车重新结算！",
+            error: null
+        });
+    }
     async.parallel({
         addess: function (cb) {
             db.Addess.find({"status": 1}, function (err, data) {
@@ -72,7 +78,8 @@ router.get('/:id', function (req, res, next) {
                 "deptList": results.dept,
                 "total": total,
                 "id": id.toString(),
-                "type": type
+                "type": type,
+                "jobNo": req.session["jobNo"]
             }
             res.render('order', json);
         } else {
@@ -93,47 +100,76 @@ router.post("/submitOrder", function (req, res, next) {
         res.json({"errMsg": "未找到商品"});
         return;
     }
-    var jobNO = req.body.jobNO;
-    var name = req.body.name;
-    var dept = req.body.dept;
-    var type = req.body.type;
-    var logistical = req.body.logistical;
-    var addess = req.body.addess;
-    var remark = req.body.remark || '';
-    var order = new db.Order({
-        jobNo: jobNO,
-        name: name,
-        dept: dept,
-        type: type,//0 送人 1自用
-        logistical: logistical, //物流方式
-        addess: addess,
-        createTime: Date.now(),
-        remark: remark,
-        status: 0
-    });
-    var total = 0;
-    var ps = [];
-    for (var k in prodects) {
-        ps.push({
-            prodectId: prodects[k].prodectId,
-            price: prodects[k].price,
-            count: prodects[k].count
-        })
-        total += prodects[k].price * prodects[k].count;
+    var ids = [];
+    for (var i = 0; i < prodects.length; i++) {
+        ids.push(prodects[i].prodectId);
     }
-    order.prodectList = ps;
-    order.money = total;
-    order.save(function (err) {
-        if (!err) {
-            req.session["prodect_" + id] = null;
-            req.session["order_" + id] = null;
-            res.json({});
-        }
-        else {
-            res.json({"errMsg": "提交失败:" + err.errMsg});
+
+    db.Prodect.find({_id: {"$in": ids}}, function (err, prods) {
+        if (!err && prods.length > 0) {
+            for (var i = 0; i < prods.length; i++) {
+                for (var j = 0; j < prodects.length; j++) {
+                    if (prods[i]._id.toString() == prodects[j].prodectId.toString()) {
+                        if (prods[i].stock < prodects[j].count) {
+                            res.json({
+                                "errMsg": prods[i].prodectName + "库存不足，无法发货!"
+                            });
+                            return;
+                        }
+                        if (prods[i].status != 1) {
+                            res.json({"errMsg": prods[i].prodectName + "已下架!"});
+                            return;
+                        }
+                        break;
+                    }
+                }
+            }
+            //开始创建订单
+            var jobNO = req.body.jobNO;
+            var name = req.body.name;
+            var dept = req.body.dept;
+            var type = req.body.type;
+            var logistical = req.body.logistical;
+            var addess = req.body.addess || null;
+            var remark = req.body.remark || '';
+            var order = new db.Order({
+                jobNo: jobNO,
+                name: name,
+                dept: dept,
+                type: type,//0 送人 1自用
+                logistical: logistical, //物流方式
+                addess: addess,
+                createTime: Date.now(),
+                remark: remark,
+                status: 0
+            });
+            var total = 0;
+            var ps = [];
+            for (var k in prodects) {
+                ps.push({
+                    prodectId: prodects[k].prodectId,
+                    price: prodects[k].price,
+                    count: prodects[k].count
+                })
+                total += prodects[k].price * prodects[k].count;
+            }
+            order.prodectList = ps;
+            order.money = total;
+            order.save(function (saveErr) {
+                if (!saveErr) {
+                    req.session["jobNo"] = jobNO;
+                    req.session["prodect_" + id] = null;
+                    req.session["order_" + id] = null;
+                    res.json({});
+                }
+                else {
+                    res.json({"errMsg": "提交失败:" + saveErr.errMsg});
+                }
+            })
+        } else {
+            res.json({"errMsg": err.errmsg || "未查询到订单商品！"});
         }
     })
-
 })
 
 router.get("/delOrder/:id", function (req, res, next) {

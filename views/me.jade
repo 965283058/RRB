@@ -19,6 +19,9 @@ html
                         a(href="/")人人币交易平台首页
                         &nbsp;&gt;&nbsp;
                         a(href='#')="个人中心"
+                        if(jobNo)
+                            &nbsp;&gt;&nbsp;
+                            a(href="javasrcipt:void(0)",onclick="logout()")="工号 "+jobNo
             div.good_con.w.l
                 div.good_xx(style="width:100%")
                     ul.basicTitle
@@ -141,20 +144,32 @@ html
                 if(jobNO==''){
                     login()
                 }
-
-                function login(){
-                    $.messager.prompt('提示信息', '请输入你的工号：', function (r) {
-                        if (r) {
-                            $.post("/me/login",{"jobNo":r},function(data){
-                                if(data.errMsg){
-                                    $.messager.alert("错误",data.errMsg,"error",login);
-                                }else{
-                                    window.location.reload();
-                                }
-                            })
-                        }else{
-                            login()
-                        }
-                    });
-                }
             })
+            function login(){
+                $.messager.prompt('提示信息', '请输入你的工号：', function (r) {
+                    if (r) {
+                        $.post("/me/login",{"jobNo":r},function(data){
+                            if(data.errMsg){
+                                $.messager.alert("错误",data.errMsg,"error",login);
+                            }else{
+                                window.location.reload();
+                            }
+                        })
+                    }else{
+                        login()
+                    }
+                });
+            }
+            function logout(){
+                $.messager.confirm("提示", "您确定更换工号吗？", function (r) {
+                    if (r) {
+                        $.post("/me/logout", function (data) {
+                            if (!data.errMsg) {
+                                login();
+                            } else {
+                                $.messager.alert("错误", data.errMsg, "error");
+                            }
+                        })
+                    }
+                })
+            }

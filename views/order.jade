@@ -30,7 +30,7 @@ html
                             h3.title= "收货人信息"
                             div
                                 label.title="工号:"
-                                input.textBox(type="text",name="jobNO")
+                                input.textBox(type="text",name="jobNO",value=jobNo)
                                 label.title="姓名:"
                                 input.textBox(type="text",name="name")
                                 label.title="部门:"
@@ -194,10 +194,16 @@ html
                                 var prodectArr = !{JSON.stringify(prodects)};
                                 var cart = new cart();
                                 $("#submitOrder").click(function(){
+                                    var self=$(this);
+                                    if(self.hasClass("disabled")){
+                                        return;
+                                    }
                                     if ($("#orderForm").form("validate")) {
                                            var data=$("#orderForm").serializeJson();
                                             data.id=prodectSid.toString();
+                                            self.addClass("disabled")
                                             $.post("/order/submitOrder",data,function(data){
+                                                self.removeClass("disabled");
                                                 if(!data.errMsg){
                                                     for(var i=0;i<prodectArr.length;i++){
                                                         cart.delProdect(prodectArr[i].prodectId,false);

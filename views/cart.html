@@ -66,6 +66,9 @@
             <tr class="br">
                 <td colspan="7" style="border-width: 2px"></td>
             </tr>
+            <tr class="item" ng-show="cartClass.cart.length==0">
+                <td colspan="7" class="center"><h2>暂无商品</h2></td>
+            </tr>
             <tr ng-repeat="prodect in cartClass.cart" class="item">
                 <td class="left pl5 vtop leftBorder">
                     <input type="checkbox" ng-click="checkProd(prodect.prodectId)"
@@ -98,7 +101,7 @@
                 <td><a href="javasrcipt:void(0)" ng-click="delCheckedProdect()">删除选中商品</a></td>
                 <td class="right" colspan="2">已选中<span ng-bind="cartClass.checkedTotal"></span>件商品</td>
                 <td class="right pr10 total" ng-bind="'￥'+cartClass.getTotal().toFixed(2)"></td>
-                <td class="center vcenter rightBorder submitOrder" ng-click="submitOrder()" colspan="2">结算</td>
+                <td class="center vcenter rightBorder submitOrder" ng-click="submitOrder($event)" colspan="2">结算</td>
             </tr>
         </table>
     </div>
@@ -249,7 +252,10 @@
 
         }
 
-        $scope.submitOrder = function () {
+        $scope.submitOrder = function (e) {
+            if (e.srcElement.className.indexOf("disabled") > -1) {
+                return;
+            }
             var p = [];
             for (var k in $scope.cartClass.cart) {
                 if ($scope.cartClass.cart[k].check) {
@@ -257,15 +263,18 @@
                 }
             }
             if (p.length == 0) {
-                return $("#dialog-modal").dialog({
+                $("#dialog-modal").dialog({
                     height: 140,
                     modal: true
                 }).html("<p>请至少选中一条商品!</p>");
+                return;
             }
+            e.srcElement.className += " disabled";
             $http.post('/order/submitCart', {"prodects": JSON.stringify(p)}).success(function (data, status) {
                 if (!data.errMsg && status == 200) {
                     window.location.href = "/order/" + data.code;
                 } else {
+                    e.srcElement.className = e.srcElement.className.replace(" disabled", "");
                     $("#dialog-modal").dialog({
                         height: 140,
                         modal: true

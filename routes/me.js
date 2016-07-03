@@ -53,8 +53,6 @@ router.get('/', function (req, res, next) {
     }
 })
 
-
-
 router.post('/login', function (req, res, next) {
     var jobNo = req.body.jobNo;
     if (jobNo) {
@@ -64,5 +62,11 @@ router.post('/login', function (req, res, next) {
         res.json({"errMsg": "请输入您的工号!"})
     }
 })
+
+router.post('/logout', function (req, res, next) {
+    req.session.jobNo = null;
+    res.json({});
+})
+
 
 module.exports = router;

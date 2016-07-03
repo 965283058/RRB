@@ -78,8 +78,6 @@ router.use('/list', function (req, res, next) {
 
 router.post('/send', function (req, res, next) {
     var id = req.body.id;
-
-
     db.Order.findOne({"_id": id}, function (err, order) {
             if (!err && order) {
                 if (order.status == 0) {
@@ -89,7 +87,7 @@ router.post('/send', function (req, res, next) {
                         ids.push(order.prodectList[i].prodectId);
                     }
                     db.Prodect.find({_id: {"$in": ids}}, function (err, prods) {
-                        if (!err || prods.length == 0) {
+                        if (!err && prods.length > 0) {
                             for (var i = 0; i < prods.length; i++) {
                                 for (var j = 0; j < prodects.length; j++) {
                                     if (prods[i]._id.toString() == prodects[j].prodectId.toString()) {

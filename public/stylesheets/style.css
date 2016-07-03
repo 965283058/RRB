@@ -127,6 +127,7 @@ body,button,input,select,textarea{font:12px/1.5 tahoma,arial,\5b8b\4f53;}
 .inputLabel input[type=checkbox] {position: absolute;top: 10%;left: 0px;}
 .submitOrder {background: #e54346;display: block;position: relative; height: 42px;line-height: 42px;color: #fff;text-align: center;
 font-size: 18px; font-family: "Microsoft YaHei"; font-weight: bold; cursor: pointer; }
+.submitOrder.disabled{  filter:alpha(opacity=40); -moz-opacity:0.4; opacity:0.4; cursor: not-allowed; }
 .ui-spinner{ height: 20px;}
 .ui-spinner input[type=text]{margin-top:1px;height: 18px;}
 
