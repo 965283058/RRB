@@ -3,6 +3,7 @@ var router = express.Router();
 var adminManage = require('./manage/manage');
 var prodect=require('./prodect');
 var order=require('./order');
+var cart=require('./cart');
 var me=require('./me')
 
 var db = require("../db/Schema");
@@ -13,6 +14,7 @@ router.get('/', function (req, res, next) {
 router.use('/manage', adminManage);
 router.use('/prodect', prodect);
 router.use('/order', order);
+router.use('/cart', cart);
 router.use('/me', me);
 router.get('/:categoryId', function (req, res, next) {
     var categoryId = req.params.categoryId;

@@ -1,5 +1,22 @@
-extends header
-block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+doctype html
+html
+    head
+        title= '人人币交易平台-商品列表'
+        script(type="text/javascript",src="/public/javascripts/jquery.pack.js")
+        link(rel='stylesheet', href='/public/stylesheets/all.css')
+        link(rel='stylesheet', href='/public/stylesheets/style.css')
+    body
+        include header
+        div.block10.w.l
+        div.w1016.c
+            div.w.l.typelist
+                div.pos.l.f12
+                    a(href="/")="人人币交易平台首页"
+                    &nbsp;&gt;&nbsp;
+                    a(href="/")="错误页面"
+        if(message)
+            div.w1016.c
+                div.goodlist.l
+                    div.category.center(style="margin-bottom:5px")
+                        h1(style="color:#e20808")="出错了："+message
+include footer

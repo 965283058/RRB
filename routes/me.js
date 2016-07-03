@@ -1,27 +1,25 @@
 var express = require('express');
 var router = express.Router();
-var adminManage = require('./manage/manage');
-var prodect = require('./prodect');
-var cart = require('./cart');
 var db = require("../db/Schema");
 var Schema = require("mongoose").Schema;
 var async = require("async");
 
 router.get('/', function (req, res, next) {
-    var jobNO = req.session.jobNO;
-    if (jobNO) {
+    var jobNo = req.session.jobNo;
+    if (jobNo) {
         async.parallel({
             order: function (cb) {
-                db.Order.find({"status": {"gt": -2}}, function (err, data) {
-                    if (!err) {
-                        cb(null, data);
-                    } else {
-                        cb(err, null);
-                    }
-                })
+               var query= db.Order.find({"status": {"$gt": -2}, "jobNo": jobNo}).populate('prodectList.prodectId', 'prodectName img').populate('dept', 'name').populate('sender', 'email').populate('addess', 'name');
+                    query.exec(function(err, data){
+                        if (!err) {
+                            cb(null, data);
+                        } else {
+                            cb(err, null);
+                        }
+                    })
             },
             like: function (cb) {
-                db.Like.find({"jobNO": jobNO}, function (err, data) {
+                db.Like.find({"jobNo": jobNo}, function (err, data) {
                     if (!err) {
                         cb(null, data);
                     } else {
@@ -31,17 +29,15 @@ router.get('/', function (req, res, next) {
             }
         }, function (err, results) {
             if (!err) {
-                var total = 0;
-                for (var k in prodects) {
-                    total += prodects[k].price * prodects[k].count;
-                }
                 var json = {
-                    "order": results.order,
-                    "Like": results.like,
-                    "jobNO": jobNO
+                    "orders":results.order,
+                    "likes": results.like,
+                    "jobNo": jobNo
                 }
+                console.info(json)
                 res.render('me', json);
             } else {
+                console.info(err)
                 res.render('error', {
                     message: err.message,
                     error: err
@@ -50,10 +46,22 @@ router.get('/', function (req, res, next) {
         });
     } else {
         res.render('me', {
-            "order": [],
-            "Like": [],
-            "jobNO": 0
+            "orders": [],
+            "likes": [],
+            "jobNo": null
         });
+    }
+})
+
+
+
+router.post('/login', function (req, res, next) {
+    var jobNo = req.body.jobNo;
+    if (jobNo) {
+        req.session.jobNo = jobNo;
+        res.json({})
+    } else {
+        res.json({"errMsg": "请输入您的工号!"})
     }
 })
 

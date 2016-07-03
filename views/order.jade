@@ -211,8 +211,7 @@ html
                                             })
                                     }
                                 })
-                                if(!{type}==0){
+                                if(!{type||"1"}==0){
                                     $("#orderForm input[name=type][value='0']").prop("checked",true);
                                 }
-
         include footer

@@ -20,7 +20,7 @@ html
                         &nbsp;&gt;&nbsp;
                         a(href='#')="个人中心"
             div.good_con.w.l
-                div.good_xx.l
+                div.good_xx(style="width:100%")
                     ul.basicTitle
                         li.current(index=1)
                             span="未完成订单"
@@ -30,19 +30,100 @@ html
                             span="我的收藏"
                         li(index=4)
                             span="我的评价"
-                    div.details(tabIndex=1)
-                        ul.suxing
-                            li="商品介绍:"
-                        div.xianqing.top10
-                            div.l.xianqing_et
-                                div.l.xianqing_tie.f14="宝贝详情"
-                                div.l.xianqing_nr.f14
+                    mixin orderHead
+                        dl.orderInfo(style="height:35px;min-height:0px")
+                            dt
+                                span.center(style="width:510px;display:inline-block")="订单详情"
+                                span.center(style="width:120px;display:inline-block")="收货人"
+                                span.center(style="width:120px;display:inline-block")="金额"
+                                span.center(style="width:120px;display:inline-block")="状态"
+                                span.center(style="width:120px;display:inline-block")="操作"
+                    mixin orderInfo(order)
+                        dl.orderInfo
+                            dt
+                                span.time=order.createTimeCN
+                                span.id="订单号："+order._id
+                                if(order.logistical=="1")
+                                    span.logistical="送货-"+order.addess.name
+                                else
+                                    span.logistical="自提"
+                                if(order.status==-1||order.status==1||order.status==2||order.status==0)
+                                    a.btn.r.mtop3(href="/order/delOrder/"+order._id)="删除"
+                                each prodect,index in order.prodectList
+                                    dd.clear
+                                        img(src=prodect.prodectId.img[0])
+                                        p.prodectName="商品名称:"
+                                            a(href="/prodect/" + prodect.prodectId._id)=prodect.prodectId.prodectName
+                                        a=prodect.price.toFixed(2)+" ×"+prodect.count
+                                dd.float.name=order.name
+                                    br
+                                    span=order.dept.name
+                                dd.float.total="总价 ￥"+order.money.toFixed(2)
+                                case order.status
+                                    when -1: dd.float.status="已取消"
+                                    when 0: dd.float.status="等待发货"
+                                                br
+                                                a(href="javasrcipt:void(0)",onclick="cancalOrder('"+order._id+"')")="取消订单"
+                                    when 1: dd.float.status="已完成"
+                                    when 2: dd.float.status="已评价"
+                                    default: dd.float.status="已删除"
+                                dd.float.evaluate
+                                    if(order.status==1)
+                                        a(href="javasrcipt:void(0)")="评价"
+                                        br
+                                    a.btn(onclick="buy('"+order._id+"')")="再次购买"
 
-                    div.good_child_list(tabIndex=2)="22222222222222222222222"
+
+
+
+
+
+
+                    div(tabIndex=1)
+                        div.goodshow.orderList
+                            +orderHead
+                            each order in orders
+                                if(order.status==0)
+                                    +orderInfo(order)
+                    div(tabIndex=2)
+                        div.goodshow.orderList
+                            each order in orders
+                                if(order.status!=0)
+                                    +orderInfo(order)
                     div.good_child_list(tabIndex=3)="33333333333333333333333"
                     div.good_child_list(tabIndex=4)="44444444444444444444444"
         include footer
         script.
+            var orders=!{JSON.stringify(orders)};
+            var cart=new cart();
+            function buy(id){
+                for(var i=0;i<orders.length;i++){
+                    if(orders[i]._id==id){
+                        var order=orders[i]
+                        for(var j=0;j<order.prodectList.length;j++){
+                            cart.addProdect(order.prodectList[j].prodectId._id,order.prodectList[j].count,order.prodectList[j].price);
+                        }
+                        window.location="/cart";
+                        break;
+                    }
+                }
+            }
+            function cancalOrder(id){
+                if(id){
+                    $.messager.confirm("提示","您确定取消该订单吗？",function(r){
+                        if(r){
+                            $.post("/order/cancalOrder",{"id":id},function(data){
+                                if(!data.errMsg){
+                                    window.location.reload();
+                                }else{
+                                    $.messager.alert("错误",data.errMsg,"error");
+                                }
+                            })
+                        }
+                    })
+                }
+            }
+
             $("ul.basicTitle li").click(function(){
                 $("ul.basicTitle li").removeClass("current");
                 var index=$(this).addClass("current").attr("index");
@@ -54,4 +135,26 @@ html
                     }
                 })
             })
-            var cart=new cart();
+
+            var jobNO='!{jobNo}';
+            $(function(){
+                if(jobNO==''){
+                    login()
+                }
+
+                function login(){
+                    $.messager.prompt('提示信息', '请输入你的工号：', function (r) {
+                        if (r) {
+                            $.post("/me/login",{"jobNo":r},function(data){
+                                if(data.errMsg){
+                                    $.messager.alert("错误",data.errMsg,"error",login);
+                                }else{
+                                    window.location.reload();
+                                }
+                            })
+                        }else{
+                            login()
+                        }
+                    });
+                }
+            })

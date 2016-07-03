@@ -31,14 +31,6 @@ var CategorySchema = new Schema({
     creator: {type: Schema.Types.ObjectId, ref: 'Admin'},
     createTime: {type: Number, default: Date.now()},
 });
-/*CategorySchema.set('toJSON', {virtuals: true})
- CategorySchema.set('toObject', {virtuals: true})
- CategorySchema.virtual('createTime_timestamp').get(function () {
- if (!this.createTime) {
- return;
- }
- return this.createTime.getTime();
- });*/
 
 exports.Category = db.model('Category', CategorySchema);
 
@@ -46,9 +38,10 @@ exports.Category = db.model('Category', CategorySchema);
 var OrderSchema = new Schema({
     jobNo: String,
     name: String,
-    dept: {type: Schema.Types.ObjectId, ref: 'Dept'}, //物流方式
+    dept: {type: Schema.Types.ObjectId, ref: 'Dept'}, //部门
     type: Number,//0 送人 1自用
     logistical: Number,//物流方式 0 自提 1送货
+    addess: {type: Schema.Types.ObjectId, ref: 'Addess'}, //部门
     prodectList: [{
         prodectId: {type: Schema.Types.ObjectId, ref: 'Prodect'},
         price: Number,
@@ -62,6 +55,43 @@ var OrderSchema = new Schema({
     status: Number  //-2删除 -1取消 0创建 1发货 2已评价
 });
 
+OrderSchema.set('toJSON', {virtuals: true})
+OrderSchema.set('toObject', {virtuals: true})
+OrderSchema.virtual('createTimeCN').get(function () {
+    return converToCNDate(this.createTime);
+});
+
+function converToCNDate(ms, format) {
+    if (!ms && ms !== 0) {
+        return '';
+    }
+    var date = new Date(ms);
+    var year = date.getFullYear(),
+        month = date.getMonth() + 1,
+        day = date.getDate(),
+        hh = date.getHours(),
+        mm = date.getMinutes(),
+        ss = date.getSeconds();
+
+    format = format || "datetime";
+    switch (format) {
+        case "datetime":
+            return year + "-" + padLeft(month) + "-" + padLeft(day) + " " + padLeft(hh) + ":" + padLeft(mm) + ":" + padLeft(ss);
+        case "date":
+            return year + "-" + padLeft(month) + "-" + padLeft(day);
+        case "time":
+            return padLeft(hh) + ":" + padLeft(mm) + ":" + padLeft(ss);
+        default :
+            return "";
+    }
+
+    function padLeft(number) {
+        if (parseInt(number) < 10) {
+            return '0' + number;
+        }
+        return number;
+    }
+};
 
 exports.Order = db.model('Order', OrderSchema);
 

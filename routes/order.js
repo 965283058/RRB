@@ -32,7 +32,6 @@ router.get('/:id', function (req, res, next) {
         },
         dept: function (cb) {
             db.Dept.find({"status": 1}, function (error, data) {
-
                 if (!error) {
                     var json = [];
                     for (var i = 0; i < data.length; i++) {
@@ -107,6 +106,7 @@ router.post("/submitOrder", function (req, res, next) {
         dept: dept,
         type: type,//0 送人 1自用
         logistical: logistical, //物流方式
+        addess: addess,
         createTime: Date.now(),
         remark: remark,
         status: 0
@@ -135,5 +135,60 @@ router.post("/submitOrder", function (req, res, next) {
     })
 
 })
+
+router.get("/delOrder/:id", function (req, res, next) {
+    var id = req.params.id;
+    db.Order.findOne({"_id": id}, function (err, order) {
+        if (!err && order) {
+            if (order.status == 0 || order.status == -2) {
+                res.render('error', {
+                    message: "订单不可删除",
+                    error: null
+                });
+            } else {
+                order.status = -2;
+                order.save(function (err) {
+                    if (!err) {
+                        res.redirect("/me");
+                    } else {
+                        res.render('error', {
+                            message: err.message,
+                            error: err
+                        });
+                    }
+                })
+            }
+        } else {
+            res.render('error', {
+                message: err.message || "未找到该订单！",
+                error: err
+            });
+        }
+    })
+})
+
+router.post("/cancalOrder", function (req, res, next) {
+    var id = req.body.id;
+    db.Order.findOne({"_id": id}, function (err, order) {
+        if (!err && order) {
+            if (order.status != 0) {
+                req.json({"errMsg": err.message || "订单不可取消！"});
+            } else {
+                order.status = -1;
+                order.save(function (error) {
+                    if (!error) {
+                        res.json({});
+                    } else {
+                        console.info(error)
+                        res.json({"errMsg": error.message});
+                    }
+                })
+            }
+        } else {
+            res.json({"errMsg": err.message || "未找到该订单！"});
+        }
+    })
+})
+
 
 module.exports = router;
