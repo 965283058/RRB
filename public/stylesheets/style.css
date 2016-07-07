@@ -230,3 +230,9 @@ font-size: 18px; font-family: "Microsoft YaHei"; font-weight: bold; cursor: poin
 .orderList dl.orderInfo dd.total{right: 240px;}
 .orderList dl.orderInfo dd.status{right: 120px;}
 .orderList dl.orderInfo dd.evaluate{right: 0px;}
+#Evaluate ul{
+    list-style: none;
+}
+#Evaluate li{
+    display: inline-block;
+}

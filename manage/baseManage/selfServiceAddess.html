@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>自提地址管理</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-style.css">
+    <link rel="stylesheet" type="text/css" href="../css/hk-icon.css">
+    <script type="text/javascript" src="../../public/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../public/javascripts/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/extend.js"></script>
+
+</head>
+
+<body>
+
+<table style="width: 100%;margin-top: 20px">
+    <tr>
+        <td style="vertical-align: top;margin-top: 30px;width: 100px;text-align: right">自提说明：</td>
+        <td><textarea id="info" maxlength="5000" style="width: 90%;height: 300px"></textarea></td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align: center">
+            <button class="hk-btn edit" id="btnSave">保存</button>
+        </td>
+    </tr>
+</table>
+</button>
+<script>
+    $(function () {
+        $.ajax({
+            url: "/manage/selfAddess",
+            type:"post",
+            succ: function (data) {
+                $("#info").val(data.text);
+            }
+        })
+        $("#btnSave").click(function(){
+            $.modalWait("open",{"msg":"保存中..."})
+            $.ajax({
+                url: "/manage/saveSelfAddess",
+                type:"post",
+                data:{"text":$("#info").val()},
+                succ: function (data) {
+                    $("#info").val();
+                },
+                complete:function(){
+                    $.modalWait("close");
+                }
+            })
+        })
+
+
+    })
+</script>
+</body>
+</html>

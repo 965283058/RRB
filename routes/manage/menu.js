@@ -34,7 +34,7 @@ router.post('/edit', function (req, res, next) {
     var href = req.body.href;
     var iconCls = req.body.icon;
     var parentId = req.body.parentId;
-    var status = req.body.status || 0;
+    var status = parseInt(req.body.status) || 0;
     db.Menu.findOne({_id: id}, function (err, menu) {
         if (!err) {
             if (menu) {
@@ -43,11 +43,13 @@ router.post('/edit', function (req, res, next) {
                 menu.iconCls = iconCls;
                 menu._parentId = parentId;
                 menu.status = status;
+                menu.createTime=Date.now();
                 menu.save(function (err) {
                     if (!err) {
                         res.end(JSON.stringify({}));
                     } else {
-                        res.end(JSON.stringify({"status": 12, "message": err.errmsg}));
+                        console.info(err)
+                        res.end(JSON.stringify({"status": 11, "message": err.errmsg}));
                     }
                 })
             }

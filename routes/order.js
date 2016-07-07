@@ -6,20 +6,21 @@ var cart = require('./cart');
 var db = require("../db/Schema");
 var Schema = require("mongoose").Schema;
 var async = require("async");
+var fs=require("fs");
 
 router.use('/submitCart', function (req, res, next) {
     var prodects = req.body.prodects;
-    var type = req.body.type;
+    //var type = req.body.type;
     var no = Date.now() + Math.random().toString().split(".").pop();
     req.session["prodect_" + no] = JSON.parse(prodects);
-    req.session["order_" + no] = type;
+    //req.session["order_" + no] = type;
     res.json({"code": no});
 });
 
 router.get('/:id', function (req, res, next) {
     var id = req.params.id;
     var prodects = req.session["prodect_" + id];
-    var type = req.session["order_" + id];
+    //var type = req.session["order_" + id];
     if (!prodects) {
         res.render('error', {
             message: "未找到订单,请返回购物车重新结算！",
@@ -65,6 +66,15 @@ router.get('/:id', function (req, res, next) {
                     cb(error, null);
                 }
             });
+        },
+        selfAddess: function (cb) {
+            fs.readFile("../uploads/selfAddess.txt", function (err, data) {
+                if (!err) {
+                    cb(null, data);
+                } else {
+                    cb(err, null);
+                }
+            });
         }
     }, function (err, results) {
         if (!err) {
@@ -78,8 +88,8 @@ router.get('/:id', function (req, res, next) {
                 "deptList": results.dept,
                 "total": total,
                 "id": id.toString(),
-                "type": type,
-                "jobNo": req.session["jobNo"]
+                "jobNo": req.session["jobNo"],
+                "selfAddess":results.selfAddess
             }
             res.render('order', json);
         } else {
@@ -128,7 +138,7 @@ router.post("/submitOrder", function (req, res, next) {
             var jobNO = req.body.jobNO;
             var name = req.body.name;
             var dept = req.body.dept;
-            var type = req.body.type;
+            //var type = req.body.type;
             var logistical = req.body.logistical;
             var addess = req.body.addess || null;
             var remark = req.body.remark || '';
@@ -136,7 +146,7 @@ router.post("/submitOrder", function (req, res, next) {
                 jobNo: jobNO,
                 name: name,
                 dept: dept,
-                type: type,//0 送人 1自用
+                //type: type,//0 送人 1自用
                 logistical: logistical, //物流方式
                 addess: addess,
                 createTime: Date.now(),
@@ -222,6 +232,33 @@ router.post("/cancalOrder", function (req, res, next) {
             }
         } else {
             res.json({"errMsg": err.message || "未找到该订单！"});
+        }
+    })
+})
+
+router.post("/evaluate", function (req, res, next) {
+    var jobNo = req.session.jobNo;
+    if (!jobNo) {
+        res.json({"errMsg": "请输入工号!"});
+    }
+    var prodectId = req.body.prodectId;
+    var leveal = req.body.leveal;
+    var content = req.body.content;
+    var orderId = req.body.orderId;
+
+    var evaluate = new db.Evaluate({
+        prodectId: prodectId,
+        orderId: orderId,
+        jobNo: jobNo,
+        level: leveal,
+        content: content,
+        status: 0,   //0禁用 1正常
+    })
+    evaluate.save(function (error) {
+        if (!error) {
+            res.json({});
+        } else {
+            res.json({"errMsg": error.message});
         }
     })
 })

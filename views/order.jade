@@ -35,16 +35,16 @@ html
                                 input.textBox(type="text",name="name")
                                 label.title="部门:"
                                 select#dept(name="dept")
-                        li
-                            h3.title= "订单类型:"
-                            div
-                                label.title= "请选择订单类型:"
-                                label.inputLabel.pr15
-                                    input(type="radio",name="type",value="1",checked=true)
-                                    ="自用"
-                                label.inputLabel
-                                    input(type="radio",name="type",value="0")
-                                    ="送人"
+                        //li
+                        //    h3.title= "订单类型:"
+                        //    div
+                        //        label.title= "请选择订单类型:"
+                        //        label.inputLabel.pr15
+                        //            input(type="radio",name="type",value="1",checked=true)
+                        //            ="自用"
+                        //        label.inputLabel
+                        //            input(type="radio",name="type",value="0")
+                        //            ="送人"
                         li
                             h3.title= "收货方式"
                             div
@@ -65,7 +65,7 @@ html
                                         option(value=item._id)=item.name
                         li#since
                             h3.title= "自提说明"
-                            div="科技大厦18层-人力资源部 高鹤 手机号13520911733"
+                            div=selfAddess
                         li
                             h3.title= "商品信息"
                             div.goodshow
@@ -141,19 +141,10 @@ html
                                     value:"",
                                     novalidate:true
                                 });
-                                $("#orderForm input[name=type]").click(function(){
-                                    if($(this).val()=="0"){
-                                        $("#orderForm input[name=logistical][value='0']").click();
-                                    }
-                                })
+
 
                                 $("#orderForm input[name=logistical]").click(function(){
                                     var val=$(this).val();
-                                    var type=$("#orderForm input[name=type]:checked").val();
-                                    if(val=="1"&&type=="0"){
-                                        $.messager.alert("提示","订单类型为送人的只能收货方式只能选择自提!","info")
-                                        return false;
-                                    }
                                     if(val=="1"){
                                         $("#addess").show();
                                         $("#addessCombo").combobox("enableValidation");
@@ -217,7 +208,4 @@ html
                                             })
                                     }
                                 })
-                                if(!{type||"1"}==0){
-                                    $("#orderForm input[name=type][value='0']").prop("checked",true);
-                                }
         include footer

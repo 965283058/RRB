@@ -39,7 +39,7 @@ var OrderSchema = new Schema({
     jobNo: String,
     name: String,
     dept: {type: Schema.Types.ObjectId, ref: 'Dept'}, //部门
-    type: Number,//0 送人 1自用
+    //type: Number,//0 送人 1自用
     logistical: Number,//物流方式 0 自提 1送货
     addess: {type: Schema.Types.ObjectId, ref: 'Addess'}, //部门
     prodectList: [{
@@ -106,6 +106,7 @@ exports.Addess = db.model('Addess', AddessSchema);
 //评价
 var EvaluateSchema = new Schema({
     prodectId: {type: Schema.Types.ObjectId, ref: 'Prodect'},
+    orderId: {type: Schema.Types.ObjectId, ref: 'Order'},
     jobNo: String,
     level: Number,
     content: String,
@@ -155,7 +156,7 @@ exports.Dept = db.model('Dept', DeptSchema);
 
 //收藏
 var LikeSchema = new Schema({
-    jobNO: String,
+    jobNo: String,
     prodectList: [{type: Schema.Types.ObjectId, ref: 'Prodect'}]
 });
 exports.Like = db.model('Like', LikeSchema);

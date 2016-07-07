@@ -2,11 +2,15 @@ doctype html
 html
     head
         title= '人人币交易平台-商品详情'
+
         script(type="text/javascript",src="/public/javascripts/jquery.pack.js")
         script(type="text/javascript",src="/public/javascripts/jQuery.blockUI.js")
         script(type="text/javascript",src="/public/javascripts/jquery.SuperSlide.js")
         script(type="text/javascript",src="/public/javascripts/cart.js")
         script(type="text/javascript",src="/public/javascripts/jquery.fly.min.js")
+        link(rel='stylesheet', href='/public/javascripts/themes/bootstrap/easyui.css')
+        link(rel='stylesheet', href='/public/javascripts/themes/icon.css')
+        script(type="text/javascript",src="/public/javascripts/jquery.easyui.min.js")
         //[if lte IE 9]
         script(type="text/javascript",src="/public/javascripts/requestAnimationFrame.js")
         //[endif]
@@ -64,7 +68,7 @@ html
                         span="人气指数:"
                             em=1999
                         br
-                        span.shouchang="收藏商品"
+                        span#like.shouchang="收藏商品"
                     div.w.l.gms
                         if(prodect.stock>0)
                             span#addCart.rrb-btn.addCart="加入购物车"
@@ -110,6 +114,36 @@ html
                         div.good_child_list(tabIndex=3)="33333333333333333333333"
                         div.cartMsg="已成功加入购物车!"
                         script.
+                            var jobNo='!{jobNo}';
+                            $("#like").click(function(){
+                                if($(this).html()=="已收藏"){
+                                    return;
+                                }
+                                if(jobNo){
+                                    post();
+                                }else{
+                                    $.messager.prompt("提示","请输入工号",function(r){
+                                        if(r){
+                                            jobNo=r;
+                                            post(r);
+                                        }
+                                    })
+                                }
+                                function post(){
+                                    var id = $("#prodectName").attr("prodectId");
+                                    var params={"prodectId":id,"jobNo":jobNo};
+                                    $.post("/prodect/like",params,function(data){
+                                        if(!data.errMsg){
+                                            $("#like").html("已收藏");
+                                            $(".cartMsg").html("已收藏！").show().animate({width: '280px'}, 200)
+                                                    .fadeOut(2000,function(){$(".cartMsg").width(0)});
+                                        }else{
+                                            $(".cartMsg").html(data.errMsg).show().animate({width: '280px'}, 200)
+                                                    .fadeOut(2000,function(){$(".cartMsg").width(0)});
+                                        }
+                                    })
+                                }
+                            })
                             $("ul.basicTitle li").click(function(){
                                 $("ul.basicTitle li").removeClass("current");
                                 var index=$(this).addClass("current").attr("index");

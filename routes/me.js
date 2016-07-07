@@ -18,21 +18,34 @@ router.get('/', function (req, res, next) {
                         }
                     })
             },
-            like: function (cb) {
-                db.Like.find({"jobNo": jobNo}, function (err, data) {
+
+            evaluate: function (cb) {
+                var query = db.Evaluate.find({"jobNo": jobNo}).sort({"createTime": -1});
+                query.exec(function (err, data) {
                     if (!err) {
                         cb(null, data);
                     } else {
                         cb(err, null);
                     }
-                });
+                })
+            },
+            like: function (cb) {
+                var query = db.Like.find({"jobNo": jobNo}).populate('prodectList', 'prodectName img');
+                query.exec(function (err, data) {
+                    if (!err) {
+                        cb(null, data);
+                    } else {
+                        cb(err, null);
+                    }
+                })
             }
         }, function (err, results) {
             if (!err) {
                 var json = {
                     "orders":results.order,
                     "likes": results.like,
-                    "jobNo": jobNo
+                    "jobNo": jobNo,
+                    "evaluates": results.evaluate,
                 }
                 console.info(json)
                 res.render('me', json);

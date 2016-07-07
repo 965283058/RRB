@@ -109,10 +109,10 @@ router.post('/send', function (req, res, next) {
                                         var target = prods[i].stock - prodects[j].count;
                                         db.Prodect.update({_id: prods[i]._id}, {$set: {stock: target}}, function (err) {
                                             if (err) {
-                                                res.end(JSON.stringify({
+                                                res.end({
                                                     "status": 33,
                                                     "message": err.errmsg || "订单发货失败！"
-                                                }));
+                                                });
                                             }
                                         });
                                         break;
@@ -120,10 +120,17 @@ router.post('/send', function (req, res, next) {
                                 }
                             }
                             order.status = 1;
-                            order.sendTime = new Date();
+                            order.sendTime = Date.now();
                             order.sender = req.session.admin._id;
                             order.save(function (err, data) {
-                                res.end(JSON.stringify({}));
+                                if(!err){
+                                    res.json(JSON.stringify({}));
+                                }else{
+                                    res.json({
+                                        "status": 33,
+                                        "message": err.errmsg || "订单发货失败！"
+                                    });
+                                }
                             })
                         } else {
                             res.end(JSON.stringify({"status": 33, "message": err.errmsg || "未查询到订单商品！"}));
