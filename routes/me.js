@@ -20,7 +20,7 @@ router.get('/', function (req, res, next) {
             },
 
             evaluate: function (cb) {
-                var query = db.Evaluate.find({"jobNo": jobNo}).sort({"createTime": -1});
+                var query = db.Evaluate.find({"jobNo": jobNo}).populate('prodectId', 'prodectName').sort({"createTime": -1});
                 query.exec(function (err, data) {
                     if (!err) {
                         cb(null, data);
@@ -30,10 +30,14 @@ router.get('/', function (req, res, next) {
                 })
             },
             like: function (cb) {
-                var query = db.Like.find({"jobNo": jobNo}).populate('prodectList', 'prodectName img');
+                var query = db.Like.findOne({"jobNo": jobNo}).populate('prodectList', 'prodectName img');
                 query.exec(function (err, data) {
                     if (!err) {
-                        cb(null, data);
+                       if(data){
+                           cb(null, data.prodectList);
+                       }else{
+                           cb(null,[]);
+                       }
                     } else {
                         cb(err, null);
                     }
@@ -47,7 +51,6 @@ router.get('/', function (req, res, next) {
                     "jobNo": jobNo,
                     "evaluates": results.evaluate,
                 }
-                console.info(json)
                 res.render('me', json);
             } else {
                 console.info(err)
@@ -61,7 +64,8 @@ router.get('/', function (req, res, next) {
         res.render('me', {
             "orders": [],
             "likes": [],
-            "jobNo": null
+            "jobNo": null,
+            "evaluates":[]
         });
     }
 })
@@ -80,6 +84,21 @@ router.post('/logout', function (req, res, next) {
     req.session.jobNo = null;
     res.json({});
 })
+router.use('/cancelLike/:id', function (req, res, next) {
+    var jobNo=req.session.jobNo;
+    if(jobNo){
+        var id=req.params.id;
+        db.Like.update({"jobNo":jobNo}, {"$pull":{"prodectList":id}},function(err){
+            if(err){
+                console.info(err)
+            }
+            res.redirect("/me");
+        });
+
+    }
+
+})
+
 
 
 module.exports = router;

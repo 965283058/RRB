@@ -9,6 +9,7 @@ var addess = require('./addess');
 var menu = require('./menu');
 var user = require('./user');
 var dept=require("./dept");
+var evaluate=require("./evaluate");
 
 router.use('/prodect', prodect);
 router.use('/category', category);
@@ -17,6 +18,7 @@ router.use('/addess', addess);
 router.use('/menu', menu);
 router.use('/user', user);
 router.use('/dept', dept);
+router.use('/evaluate', evaluate);
 
 
 router.post('/selfAddess', function(req,res,next){

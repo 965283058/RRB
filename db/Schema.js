@@ -113,6 +113,11 @@ var EvaluateSchema = new Schema({
     createTime: {type: Number, default: Date.now()},
     status: Number,   //0禁用 1正常
 });
+EvaluateSchema.set('toJSON', {virtuals: true})
+EvaluateSchema.set('toObject', {virtuals: true})
+EvaluateSchema.virtual('createTimeCN').get(function () {
+    return converToCNDate(this.createTime);
+})
 exports.Evaluate = db.model('Evaluate', EvaluateSchema);
 
 

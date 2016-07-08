@@ -1,0 +1,44 @@
+mixin raty(num)
+    case num
+        when 1
+            font.ratyBox="评分："
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+        when 2
+            font.ratyBox="评分："
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+        when 3
+            font.ratyBox="评分："
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+        when 4
+            font.ratyBox="评分："
+                img(src="../public/stylesheets/raty/images/star-on.png")
+                img(src="../public/stylesheets/raty/images/star-on.png")
+                img(src="../public/stylesheets/raty/images/star-on.png")
+                img(src="../public/stylesheets/raty/images/star-on.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+        when 5
+            font.ratyBox="评分："
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="/public/stylesheets/raty/images/star-on.png")
+                img(src="/public/stylesheets/raty/images/star-on.png")
+        default
+            font.ratyBox="评分："
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")
+                img(src="../public/stylesheets/raty/images/star-off.png")

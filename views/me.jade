@@ -13,6 +13,7 @@ html
         script(type="text/javascript",src="/public/javascripts/jquery.raty.js")
         script(type="text/javascript",src="/public/javascripts/cart.js")
     body
+        include raty
         include header
         div.block10.w.l
         div.w1016.c
@@ -78,13 +79,6 @@ html
                                         a(href="javasrcipt:void(0)",onclick="pingjian('"+order._id+"')")="评价"
                                         br
                                     a.btn(onclick="buy('"+order._id+"')")="再次购买"
-
-
-
-
-
-
-
                     div(tabIndex=1)
                         div.goodshow.orderList
                             +orderHead
@@ -96,8 +90,28 @@ html
                             each order in orders
                                 if(order.status!=0)
                                     +orderInfo(order)
-                    div.good_child_list(tabIndex=3)="33333333333333333333333"
-                    div.good_child_list(tabIndex=4)="44444444444444444444444"
+                    div.good_child_list(tabIndex=3)
+                        ul.likes
+                            each prodect in likes
+                                li.clear
+                                    a(href="/prodect/" + prodect._id)
+                                        img(src=prodect.img[0])
+                                        span=prodect.prodectName
+                                    a(href="/me/cancelLike/" + prodect._id)
+                                        span="取消收藏"
+
+                    div.good_child_list(tabIndex=4)
+                        ul.evaluate
+                            each evaluate in evaluates
+                                li.clear
+                                    span.title(style="width:300px")
+                                        span="商品:"
+                                            a(href="/prodect/"+evaluate.prodectId._id)=evaluate.prodectId.prodectName
+                                        +raty(evaluate.level)
+                                        span="时间:"+ evaluate.createTimeCN
+                                    span.content=evaluate.content
+
+
         include footer
         script.
             var orders=!{JSON.stringify(orders)};

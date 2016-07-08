@@ -17,6 +17,7 @@ html
         link(rel='stylesheet', href='/public/stylesheets/all.css')
         link(rel='stylesheet', href='/public/stylesheets/style.css')
     body
+        include raty
         include header
         div.block10.w.l
         div.w1016.c
@@ -98,9 +99,7 @@ html
                             li.current(index=1)
                                 span="商品详情"
                             li(index=2)
-                                span="商品评价"
-                            li(index=3)
-                                span="购买记录"
+                                span="商品评价("+evaluates.length+")"
                         div.details(tabIndex=1)
                             ul.suxing
                                 li="商品介绍:"+prodect.remark
@@ -110,9 +109,19 @@ html
                                         div.l.xianqing_nr.f14
                                             each img in prodect.img
                                                 img(src=img,alt=prodect.prodectName,style="wdith:700px")
-                        div.good_child_list(tabIndex=2)="22222222222222222222222"
-                        div.good_child_list(tabIndex=3)="33333333333333333333333"
+                        div.good_child_list(tabIndex=2)
+                            ul.evaluate
+                                each evaluate in evaluates
+                                    li.clear
+                                        span.title
+                                            span="工号:"+evaluate.jobNo.substring(0,4)+"***"+evaluate.jobNo.substring(6,7)
+                                            +raty(evaluate.level)
+                                            span="时间:"+ evaluate.createTimeCN
+                                        span.content=evaluate.content
+
+
                         div.cartMsg="已成功加入购物车!"
+
                         script.
                             var jobNo='!{jobNo}';
                             $("#like").click(function(){

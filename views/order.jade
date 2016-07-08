@@ -114,9 +114,18 @@ html
                                     });
                                     return serializeObj;
                                 };
+                                $.extend($.fn.validatebox.defaults.rules, {
+                                    jobNO: {
+                                        validator: function (value) {
+                                           return /[0-9]{8}/.test(value)
+                                        },
+                                        message: '工号必须是8位数字!'
+                                    }
+                                });
                                 $("#orderForm input[name=jobNO]").validatebox({
                                     required: true,
                                     missingMessage: "请输入您的工号!",
+                                    validType:"jobNO",
                                     validateOnCreate: false
                                 })
                                 $("#orderForm input[name=name]").validatebox({

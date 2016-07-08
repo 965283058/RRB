@@ -49,7 +49,7 @@ router.use('/list', function (req, res, next) {
                 s[sort] = (order == 'desc' ? -1 : 1);
                 query.sort(s);
             }
-            query.populate('prodectId', 'prodectName').exec(function (error, data) {
+            query.populate('prodectId', 'prodectName').populate('orderId', 'name').exec(function (error, data) {
                 if (!error) {
                     res.end(JSON.stringify({"rows": data || [], "page": page, "total": count}));
                 } else {
@@ -66,7 +66,7 @@ router.post('/changeStatus', function (req, res, next) {
     var id = req.body.id;
     db.Evaluate.findOne({"_id": id}, function (err, evaluate) {
         if (!err && evaluate) {
-            evaluate.status = Math.abs(prodect.status - 1);
+            evaluate.status = Math.abs(evaluate.status - 1);
             evaluate.save(function (err) {
                 if (!err) {
                     res.end(JSON.stringify({}));

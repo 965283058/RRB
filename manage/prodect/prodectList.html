@@ -583,7 +583,7 @@
 
 
     function changStatus(id, status) {
-        $.messager.confirm("提示", "确定" + (status == "0" ? "上架" : "下架") + "该吗？", function (r) {
+        $.messager.confirm("提示", "确定" + (status == "0" ? "上架" : "下架") + "该商品吗？", function (r) {
             if (r) {
                 $.ajax({
                     url: "/manage/prodect/changeStatus",

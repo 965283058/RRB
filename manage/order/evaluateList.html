@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>商品管理</title>
+    <title>评价管理</title>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta http-equiv="Cache-control" content="no-cache">
     <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
@@ -25,13 +25,12 @@
         <select id="prodect">
         </select>
     </div>
-    <div>
-        下单人工号:
-        <input type="text" class="searchVal" id="jobNo" style="width: 100px"/>
-    </div>
-    <div>
-        下单人姓名:
-        <input type="text" class="searchVal" id="name" style="width: 120px"/>
+    <div>评价显示状态:
+        <select id="status" class="easyui-combobox" data-options="width:100,panelHeight:120,editable:false">
+            <option value="">全部</option>
+            <option value="0">禁止显示</option>
+            <option value="1">开放显示</option>
+        </select>
     </div>
     <div>
         下单时间:
@@ -45,6 +44,7 @@
         <button class="hk-btn reset" id="btnReset" style="background-position: 2px 2px">重置
         </button>
     </div>
+
 </div>
 <table id="dg"></table>
 
@@ -158,15 +158,12 @@
 
         $("#btnSearch").click(function () {
             var prodectId = $("#prodect").combobox('getValue');
-            var name = $("#name").val();
-            var jobNo = $("#jobNo").val();
+            var status = $("#status").combobox('getValue');
             var beginDate = $("#beginDate").datebox('getValue');
             var endDate = $("#endDate").datebox('getValue');
             showList({
                 "prodectId": prodectId,
-                "name": name,
-                "jobNo": jobNo,
-                "status": 0,
+                "status": status,
                 "beginDate": beginDate,
                 "endDate": endDate
             });
@@ -174,8 +171,7 @@
 
         $("#btnReset").click(function () {
             $("#prodect").combogrid('setValue', "");
-            $("#name").val("");
-            $("#jobNo").val("");
+            $("#status").combobox('setValue', "");
             $("#beginDate").datebox('setValue', "");
             $("#endDate").datebox('setValue', "");
         })
@@ -191,17 +187,16 @@
                 loadMsg: '加载中...',
                 singleSelect: true,
                 remoteSort: true,
-                url: '/manage/order/list',
+                url: '/manage/evaluate/list',
                 queryParams: data,
                 columns: [[
                     {
                         field: 'send',
-                        title: '发货',
+                        title: '更改显示',
                         width: '100',
                         align: 'center',
-                        sortable: true,
                         formatter: function (value, row, index) {
-                            return '<a href="#" class="gridCellBtn" onclick="sendProdect(\'' + row._id + '\')">发货</a>';
+                            return '<a href="#" class="gridCellBtn" onclick="changeStatus(\'' + row._id + '\',\'' + row.status + '\')">'+(row.status==1?"禁止显示":"开放显示")+'</a>';
                         },
                     },
                     {
@@ -216,81 +211,51 @@
                         hidden: true
                     },
                     {
-                        field: 'jobNo',
-                        title: '工号',
-                        width: '150',
-                        halign: 'center',
-                        sortable: true
+                        field: 'orderId',
+                        title: '订单号',
+                        width: '180',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            if (typeof value == "object" && value) {
+                                return value._id;
+                            }
+                        },
                     },
                     {
                         field: 'name',
-                        title: '收货人',
-                        width: '150',
-                        halign: 'center',
-                        sortable: true
-                    },
-                    {
-                        field: 'logistical',
-                        title: '物流方式',
+                        title: '姓名',
                         width: '80',
                         align: 'center',
                         sortable: true,
                         formatter: function (value, row, index) {
-                            return value == 1 ? "送货" : value === 0 ? "自提" : "";
+                            if (typeof row.orderId == "object") {
+                                return row.orderId.name;
+                            }
                         },
                     },
                     {
-                        field: 'dept',
-                        title: '部门',
-                        width: '100',
+                        field: 'prodectId',
+                        title: '商品',
+                        width: '150',
                         halign: 'center',
                         sortable: true,
                         formatter: function (value, row, index) {
                             if (typeof value == "object" && value) {
-                                return value.name;
-                            }
-                        },
-                    },
-//                    {
-//                        field: 'type',
-//                        title: '类型',
-//                        width: '60',
-//                        align: 'center',
-//                        sortable: true,
-//                        formatter: function (value, row, index) {
-//                            return value == 1 ? "自用" : "送人";
-//                        },
-//                    },
-                    {
-                        field: 'prodectList',
-                        title: '购买商品',
-                        width: '300',
-                        halign: 'center',
-                        sortable: true,
-                        formatter: function (value, row, index) {
-                            if (typeof value == "object" && value) {
-                                var a = [];
-                                for (var i = 0; i < value.length; i++) {
-                                    a.push(value[i].prodectId.prodectName);
-                                }
-                                return '<div class="text-overflow">' + a.join(";&nbsp;&nbsp;") + '</div>';
+                                return '<div class="text-overflow">' + value.prodectName + '</div>';
                             }
                         }
                     },
                     {
-                        field: 'money',
-                        title: '总金额',
+                        field: 'level',
+                        title: '评价分数',
                         width: '100',
-                        halign: 'center',
-                        align: 'right',
-                        sortable: true,
-                        formatter: function (value, row, index) {
-                            return (parseFloat(value) || 0).toFixed(2)
-                        }
+                        align: 'center',
+                        sortable: true
                     },
                     {
                         field: 'createTime',
-                        title: '下单时间',
+                        title: '评价时间',
                         width: '135',
                         align: 'center',
                         sortable: true,
@@ -299,9 +264,24 @@
                         }
                     },
                     {
-                        field: 'remark',
+                        field: 'status',
+                        title: '状态',
+                        width: '60',
+                        align: 'center',
+                        sortable: true,
+                        formatter: function (value, row, index) {
+                            switch (value) {
+                                case 0:
+                                    return "禁止显示";
+                                case 1:
+                                    return "开放显示";
+                            }
+                        },
+                    },
+                    {
+                        field: 'content',
                         title: '下单留言',
-                        width: '300',
+                        width: '500',
                         halign: 'center',
                         formatter: function (value, row, index) {
                             return '<div class="text-overflow">' + value + '</div>';
@@ -309,89 +289,6 @@
                     },
                 ]],
                 emptyMessage: "没有符合条件的记录",
-                view: detailview,
-                detailFormatter: function (rowIndex, rowData) {
-                    return '<div style="padding: 15px 30px"><div id="ProdectDetail_' + rowIndex + '"></div></div>';
-                },
-                onExpandRow: function (index, row) {
-                    var selector = $("#ProdectDetail_" + index);
-                    if (selector.css("dispaly") != 'none') {
-                        var data = {"total": row.prodectList.length, "rows": row.prodectList};
-                        var count = 0;
-                        var total = 0;
-                        for (var i = 0; i < data.rows.length; i++) {
-                            data.rows[i].number = i + 1;
-                            count += data.rows[i].count;
-                            total += data.rows[i].count * data.rows[i].price;
-                        }
-                        data.footer = [{"count": "总数量:&nbsp;" + count, "total": "合计:&nbsp;"+total.toFixed(2)}];
-                        selector.datagrid({
-                            data: data,
-                            width: 580,
-                            showFooter: true,
-                            columns: [[
-                                {
-                                    field: 'number',
-                                    title: '序号',
-                                    width: '40',
-                                    align: 'center'
-                                },
-                                {
-                                    field: 'prodectId',
-                                    title: '商品ID',
-                                    hidden: true,
-                                    formatter: function (value, row, index) {
-                                        if(typeof value=="object")
-                                            return value._id;
-                                    }
-                                },
-                                {
-                                    field: 'prodectName',
-                                    title: '商品名称',
-                                    width: '265',
-                                    align: 'center',
-                                    formatter: function (value, row, index) {
-                                        if(typeof row.prodectId=="object")
-                                            return row.prodectId.prodectName
-                                    }
-                                },
-                                {
-                                    field: 'price',
-                                    title: '商品单价',
-                                    width: '90',
-                                    halign: 'center',
-                                    align: 'right',
-                                    formatter: function (value, row, index) {
-                                        if(typeof value!="undefined")
-                                            return (parseFloat(value) || 0).toFixed(2)
-                                    }
-                                },
-                                {
-                                    field: 'count',
-                                    title: '商品数量',
-                                    width: '90',
-                                    halign: 'center',
-                                    align: 'right',
-                                }, {
-                                    field: 'total',
-                                    title: '商品小计',
-                                    width: '90',
-                                    halign: 'center',
-                                    align: 'right',
-                                    formatter: function (value, row, index) {
-                                        if(typeof row.price=="number"&&typeof row.count=="number"){
-                                            return ((parseFloat(row.price) || 0) * (parseInt(row.count) || 0)).toFixed(2);
-                                        }else{
-                                            return value;
-                                        }
-                                    }
-                                },
-                            ]],
-                        });
-                        $(this).datagrid("fixDetailRowHeight", index);
-                    }
-                    $(this).datagrid("resize");
-                }
             });
 
             dg.datagrid("getPanel").find(".datagrid-header-check input").hide();
@@ -400,26 +297,21 @@
         }
     })
 
-    function sendProdect(id) {
-        $.messager.confirm("发货操作提示", "您确定发货吗？", function (r) {
-            if(r){
-                $.modalWait('open', {"msg": "发货中，请稍等..."});
+    function changeStatus(id, status) {
+        $.messager.confirm("提示", "确定" + (status == "0" ? "显示" : "禁止") + "该条评论吗？", function (r) {
+            if (r) {
                 $.ajax({
-                    url: '/manage/order/send',
+                    url: "/manage/evaluate/changeStatus",
                     type: "post",
                     data: {"id": id},
-                    succ: function (data) {
-                        $.messager.alert("【消息通知】", "发货成功", "info");
-                        $('#dg').datagrid("reload");
-                    },
-                    complete: function (res) {
-                        $.modalWait('close');
+                    succ: function (res) {
+                        $.messager.alert("提示", (status == "0" ? "显示" : "禁止") + "成功", "info");
+                        $("#dg").datagrid("reload");
                     }
-                });
+                })
             }
         })
     }
-
 
 </script>
 

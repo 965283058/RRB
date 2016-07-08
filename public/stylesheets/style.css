@@ -236,3 +236,48 @@ font-size: 18px; font-family: "Microsoft YaHei"; font-weight: bold; cursor: poin
 #Evaluate li{
     display: inline-block;
 }
+.evaluate li{
+    border-bottom: 1px solid #dddddd;
+    padding: 2px 8px;
+}
+.evaluate span{
+    display: inline-block;
+}
+.evaluate .title{
+     width: 150px;
+     float: left;
+ }
+.evaluate .title span{
+    display: block;
+}
+.evaluate .content{
+    float: left;
+    width: 600px;
+}
+.evaluate .ratyBox{
+    line-height: 20px;
+}
+.evaluate .ratyBox img{
+    position: relative;
+    top: 3px;
+}
+.likes li{
+    padding: 3px 5px;
+    border-bottom: 1px solid #CCCCCC;
+}
+.likes li a{
+    float: left;
+    display: block;
+}
+.likes li img{
+    height: 50px;
+    width: 50px;
+    float: left;
+}
+.likes li span{
+    padding-left: 8px;
+    height: 50px;
+    display: inline-block;
+    float: left;
+}
+
