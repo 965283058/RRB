@@ -30,7 +30,7 @@ router.get('/:categoryId', function (req, res, next) {
     }
 });
 
-function getProdectData(categoryId, name, res) {
+function getProdectData(categoryId, name, res,isMoblie) {
     db.Category.find({"status": 1}, '', {sort: {"categoryPrice": 1}}, function (err, categorys) {
         if (!err) {
             var where = {"status": 1};
@@ -42,8 +42,7 @@ function getProdectData(categoryId, name, res) {
             }
             var json = [];
             for (var i = 0; i < categorys.length; i++) {
-                var c = categorys[i];
-                c.prodects = [];
+                var c = {"_id":categorys[i]._id,"categoryName":categorys[i].categoryName,"categoryPrice":categorys[i].categoryPrice,"prodects":[]};
                 json.push(c);
             }
             db.Prodect.find(where, '', {sort: {"price": 1}}, function (err, prodects) {
@@ -55,16 +54,35 @@ function getProdectData(categoryId, name, res) {
                             }
                         }
                     }
-                    res.render('index', {"categorys": json, "categoryId": categoryId});
+                   if(!isMoblie){
+                       res.render('index', {"categorys": json, "categoryId": categoryId});
+                   }else{
+                       res.json({"categorys": json, "categoryId": categoryId});
+                   }
                 } else {
-                    res.render('index', {"errorMsg": "暂无商品", "categorys": categorys, "categoryId": categoryId});
+                    if(!isMoblie){
+                        res.render('index', {"errorMsg": "暂无商品", "categorys": categorys, "categoryId": categoryId});
+                    }else{
+                        res.json({"errorMsg": "暂无商品","categorys": json, "categoryId": categoryId});
+                    }
+
                 }
             })
         } else {
-            res.render('index', {"errorMsg": "查询错误"});
+            if(!isMoblie){
+                res.render('index', {"errorMsg": "查询错误"});
+            }else{
+                res.json({"errorMsg": "查询错误"});
+            }
         }
     })
 }
 
+
+router.post('/', function (req, res, next) {
+    var categoryId = req.body.categoryId;
+    var name = req.body.name;
+    getProdectData(categoryId, name, res,true);
+});
 
 module.exports = router;
