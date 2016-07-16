@@ -6,7 +6,7 @@ var Schema = require("mongoose").Schema;
 
 router.use('/list', function (req, res, next) {
     var name = req.body.name;
-    var a = {"name": new RegExp(name), "status": 1};
+    var a = {"name": new RegExp(name)};
     var sort = req.body.sort;
     var order = req.body.order;
     db.Dept.count(a, function (err, count) {
@@ -113,17 +113,17 @@ router.use('/getTreeDept', function (req, res, next) {
 router.post('/changeStatus', function (req, res, next) {
     var id = req.body.id;
     db.Dept.findOne({"_id": id}, function (err, dept) {
-        if (!err && menu) {
+        if (!err && dept) {
             dept.status = Math.abs(dept.status - 1);
             dept.save(function (err) {
                 if (!err) {
-                    res.end(JSON.stringify({}));
+                    res.json({});
                 } else {
-                    res.end(JSON.stringify({"status": 22, "message": err.errmsg}));
+                    res.json({"status": 22, "message": err.message});
                 }
             })
         } else {
-            res.end(JSON.stringify({"status": 22, "message": err ? err.errmsg : "未找到该部门"}));
+            res.json({"status": 22, "message": err ? err.message : "未找到该部门"});
         }
     })
 });

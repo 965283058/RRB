@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>购物车</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="css/mui.min.css">
+    <link rel="stylesheet" href="css/rrb.css">
+    <script src="js/juicer-min.js"></script>
+    <script src="js/rem.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/mui.min.js"></script>
+    <script src="js/common.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        .mui-content {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .prodect-bar {
+            background-color: #f7f7f7;
+            height: 2rem;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: table;
+            height: 2rem;
+            padding: 0;
+            table-layout: fixed;
+            color: #003147;
+            z-index: 50;
+        }
+
+        .tab-item {
+            height: 2rem;
+            font-size: 0.75rem;
+            color: #000;
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 500;
+        }
+
+        .tab-item .mui-icon {
+            font-size: 1rem;
+            position: relative;
+            top: 3px;
+            width: 24px;
+            height: 24px;
+            color: #6c6c6c;
+            z-index: 20;
+        }
+
+        .tab-item .mui-icon.mui-active {
+            color: orange;
+        }
+
+        .tab-item .mui-tab-label {
+            font-size: 0.4rem;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #003147;
+            font-weight: 300;
+        }
+
+        .mui-backdrop {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 998;
+            background-color: rgba(0, 0, 0, .8);
+        }
+
+        .mui-poppicker span.mui-icon {
+            font-size: 0.7rem
+        }
+
+        .cart {
+            position: absolute;
+            background: #F0f0f0;
+            opacity: 0.8;
+            height: 1.8rem;
+            width: 1.8rem;
+            border-radius: 50%;
+            display: block;
+            top: 2.6rem;
+            right: 1rem;
+            z-index: 999;
+        }
+
+        .prodectInfo {
+            padding-bottom: 2rem;
+            height: 100%;
+        }
+
+        .prodectInfo .mui-pull-left {
+            margin-left: 1.5rem;;
+        }
+
+        .prodectInfo .mui-table-view .mui-media-object {
+            line-height: 4rem;
+            max-width: 4rem;
+            height: 4rem;
+        }
+
+        .prodectInfo .mui-media-body {
+            position: absolute;
+            left: 5.8rem;
+            height: 5rem;
+            width: 9.3rem;
+        }
+
+        .prodectInfo .mui-media-body .price {
+            position: absolute;
+            bottom: 1rem;
+            width: 5rem;
+            color: red;
+        }
+
+        .prodectInfo .mui-media-body .count {
+            position: absolute;
+            bottom: 0.9rem;
+            right: 0.4rem;
+        }
+
+    </style>
+</head>
+
+<body>
+<header class="mui-bar mui-bar-nav">
+    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+    <h1 class="mui-title">购物车</h1>
+</header>
+<div class="mui-content">
+    <div class="prodectInfo" id="prodectList">
+    </div>
+    <nav class="prodect-bar">
+        <a class="tab-item" style="width: 30%;font-size: .7rem">
+            <span class="mui-table-view-cell mui-checkbox mui-left" style="padding-left: 50px">
+                <input name="checkbox" type="checkbox" style="left: 0.5rem" id="allCheckBox">全选
+            </span>
+        </a>
+        <a class="tab-item mui-text-left" style="width: 40%;">
+            合计:￥<span id="total">0.00</span>
+        </a>
+        <a class="tab-item" id="buy" style="background: #f1155d;width: 30%;color: #FFFFFF">
+            结算(<span>0</span>)
+        </a>
+    </nav>
+</div>
+</body>
+
+
+<script>
+    mui.init();
+    mui.ready(function () {
+        var cartObj = new cart();
+
+        function total() {
+            var total = 0;
+            var count = 0;
+            mui(".mui-table-view-cell.mui-media").each(function () {
+                var ck = this.querySelector("input[type=checkbox]").checked;
+                if (ck) {
+                    var valCount = parseInt(this.querySelector("input[name=count]").value, 10);
+                    count += valCount;
+                    var price = parseFloat(this.querySelector(".price").innerHTML.replace("￥", ""), 10);
+                    total += (count * price);
+                }
+            });
+            document.querySelector("#buy span").innerHTML = count;
+            document.querySelector("#total").innerHTML = total.toFixed(2);
+        }
+
+        mui("#prodectList").on("change", "input[type=number]", function () {
+            var val=parseInt(this.value,10);
+            cartObj.update(this.dataset.id, val);
+            total();
+        });
+
+        mui("#prodectList").on("change", "input[type=checkbox]", function () {
+            var ck = true;
+            var eles = document.querySelectorAll("#prodectList input[type=checkbox]");
+            for (var i = 0; i < eles.length; i++) {
+                if (!eles[i].checked) {
+                    ck = false;
+                    break;
+                }
+            }
+            document.getElementById("allCheckBox").checked = ck;
+        });
+
+        document.getElementById("allCheckBox").addEventListener("change", function () {
+            var ck = this.checked;
+            mui(".mui-table-view-cell.mui-media input[type=checkbox]").each(function () {
+                this.checked = ck;
+            }, false)
+            total();
+        });
+
+        mui('#prodectList').on('tap', '.mui-btn.mui-btn-del', function (event) {
+            var elem = this;
+            var li = elem.parentNode.parentNode;
+            mui.confirm('确认删除该条商品吗？', '提示', ['取消','确认'], function (e) {
+                if (e.index == 1) {
+                    cartObj.delProdect(li.dataset.id);
+                    li.parentNode.removeChild(li);
+                } else {
+                    mui.swipeoutClose(li);
+                }
+            });
+        });
+
+        document.getElementById("buy").addEventListener("tap", function () {
+            var p = [];
+            var eles = document.querySelectorAll("#prodectList input[type=checkbox]");
+            for (var i = 0; i < eles.length; i++) {
+                if (eles[i].checked) {
+                    var id = eles[i].dataset.id;
+                    for (var k in cartObj.cart) {
+                        if (cartObj.cart[k].prodectId == id) {
+                            var prod = getProd(id);
+                            if (prod) {
+                                var item = {
+                                    "prodectId": id,
+                                    "prodectName": prod.prodectName,
+                                    "price": prod.price,
+                                    "stock": prod.stock,
+                                    "count": cartObj.cart[k].count,
+                                    "img": prod.img[0],
+                                    "categoryId": prod.categoryId._id,
+                                    "categoryName": prod.categoryId.categoryName
+                                };
+                                p.push(item);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            if (p.length == 0) {
+                return mui.alert('请至少选中一条商品!', '提示', '确认');
+            }
+            mui.post('/order/submitCart', {"prodects": JSON.stringify(p)}, function (data, status) {
+                if (!data.errMsg) {
+                    window.location.href = "order.html?id=" + data.code;
+                } else {
+                    mui.alert(data.errMsg, '错误', '确认');
+                }
+            })
+        });
+
+
+        var ids = [];
+        for (var k in cartObj.cart) {
+            ids.push(cartObj.cart[k].prodectId);
+        }
+        if(ids.length==0){
+            return mui.alert("您的购物车是空的，赶快去选购商品吧！","提示",function(){
+                window.location="index.html";
+            })
+        }
+        var prodectJSON;
+
+        function getProd(id) {
+            for (var i = 0; i < prodectJSON.length; i++) {
+                if (prodectJSON[i]._id == id) {
+                    return prodectJSON[i];
+                }
+            }
+            return null;
+        }
+
+        mui.ajax({
+            url: "/cart/getProdects",
+            data: {"ids": ids.join(";")},
+            type: "post",
+            success: function (data) {
+                if (data.errMsg) {
+                    return alert(data.errMsg);
+                }
+                prodectJSON = data;
+                for (var j in data) {
+                    for (var k in cartObj.cart) {
+                        if (data[j]._id == cartObj.cart[k].prodectId) {
+                            data[j].count = cartObj.cart[k].count;
+                            break;
+                        }
+                    }
+                }
+                document.getElementById("prodectList").innerHTML += (juicer(document.getElementById("prodect").innerHTML, {"prodects": data}));
+                mui('#prodectList').scroll({
+                    deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+                });
+                mui('.mui-numbox').numbox();
+                document.getElementById("allCheckBox").checked = true;
+                mui.trigger(document.getElementById("allCheckBox"), "change")
+            }
+        });
+
+        if (is_weixin()) {
+            document.querySelector(".cart").style.top = "0.6rem";
+        }
+
+    })
+</script>
+
+<script type="text/template" id="prodect">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+        {@each prodects as prodect}
+        {@if   prodect.stock>0}
+        <li class="mui-table-view-cell mui-media" data-id="${prodect._id}">
+            <div class="mui-slider-right mui-disabled">
+                <a class="mui-btn mui-btn-del">删除</a>
+            </div>
+            <div class="mui-table mui-slider-handle">
+                <div class="mui-table-cell mui-col-xs-12">
+                    <span class="mui-checkbox mui-left">
+                        <input data-id="${prodect._id}" name="checkbox" type="checkbox" style="left: 2px;">
+                    </span>
+                    <img class="mui-media-object mui-pull-left" src="${prodect.img[0]}">
+
+                    <div class="mui-media-body">
+                        <h4>${prodect.prodectName}</h4>
+                        <h5>分类： ${prodect.categoryId.categoryName}</h5>
+                        <h4 class="price">￥${prodect.price.toFixed(2)}</h4>
+
+                        <div class="count mui-numbox" data-numbox-min='1'
+                             data-numbox-max='${prodect.stock>20?20:prodect.stock}'>
+                            <button class="mui-btn mui-btn-numbox-minus" type="button">-</button>
+                            <input data-id="${prodect._id}" class="mui-input-numbox" name="count" type="number"
+                                   value="${prodect.count}"/>
+                            <button class="mui-btn mui-btn-numbox-plus" type="button">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {@/if}
+        {@/each}
+    </ul>
+</script>
+</html>

@@ -51,7 +51,7 @@ html
                 script.
                     $(".tabBox").slide({mainCell:".bd ul"});
                 div.good_attr.l
-                    h1#prodectName(prodectId=prodect._id)=prodect.prodectName
+                    h1#prodectName(prodectId=prodect._id)=prodect.prodectName+(prodect.status==1?"":"(已下架)")
                     p.w.l.lh26.mtop5
                         span.gar_jg
                             label="售价:"
@@ -69,9 +69,9 @@ html
                         span="人气指数:"
                             em=1999
                         br
-                        span#like.shouchang="收藏商品"
+                        span#like.shouchang=(!like?"收藏商品":"已收藏")
                     div.w.l.gms
-                        if(prodect.stock>0)
+                        if(prodect.stock>0&&prodect.status==1)
                             span#addCart.rrb-btn.addCart="加入购物车"
                             span#buy.rrb-btn.buy="立刻购买"
                             //span#give.rrb-btn.give="我要送人"
@@ -81,7 +81,7 @@ html
                             //span#gtbbtn.rrb-btn.give.disabled="我要送人"
                 div.w.l.good_info.mtop10
                     br
-                div.good_con.w.l
+                div.good_con.w
                     div.good_xg.l
                         div.l.w188.f12#history_div
                             p.dpbt="商品推荐"
@@ -104,8 +104,8 @@ html
                             ul.suxing
                                 li="商品介绍:"+prodect.remark
                             div.xianqing.top10
-                                div.l.xianqing_et
-                                    div.l.xianqing_tie.f14="宝贝详情"
+                                div.l.xianqing_et.clear
+                                    div.xianqing_tie.f14.clear="宝贝详情"
                                         div.l.xianqing_nr.f14
                                             each img in prodect.img
                                                 img(src=img,alt=prodect.prodectName,style="wdith:700px")
@@ -114,7 +114,7 @@ html
                                 each evaluate in evaluates
                                     li.clear
                                         span.title
-                                            span="工号:"+evaluate.jobNo.substring(0,4)+"***"+evaluate.jobNo.substring(6,7)
+                                            span="工号:"+evaluate.jobNo.substring(0,4)+"***"+evaluate.jobNo.substring(7,8)
                                             +raty(evaluate.level)
                                             span="时间:"+ evaluate.createTimeCN
                                         span.content=evaluate.content
@@ -125,27 +125,28 @@ html
                         script.
                             var jobNo='!{jobNo}';
                             $("#like").click(function(){
-                                if($(this).html()=="已收藏"){
-                                    return;
-                                }
+                                var type=$(this).html()=="已收藏"?1:0;
                                 if(jobNo){
-                                    post();
+                                    like(type);
                                 }else{
                                     $.messager.prompt("提示","请输入工号",function(r){
                                         if(r){
+                                            if(!/^[0-9]{8}$/.test(r)){
+                                                return $.messager.alert("提示","工号必须为8位数字!","warning",login)
+                                            }
                                             jobNo=r;
-                                            post(r);
+                                            like(type);
                                         }
                                     })
                                 }
-                                function post(){
+                                function like(type){
                                     var id = $("#prodectName").attr("prodectId");
                                     var params={"prodectId":id,"jobNo":jobNo};
-                                    $.post("/prodect/like",params,function(data){
+                                    var url= (type==1?"/prodect/cancelLike":"/prodect/like");
+                                    $.post(url,params,function(data){
                                         if(!data.errMsg){
-                                            $("#like").html("已收藏");
-                                            $(".cartMsg").html("已收藏！").show().animate({width: '280px'}, 200)
-                                                    .fadeOut(2000,function(){$(".cartMsg").width(0)});
+                                            var text=type==1?"收藏商品":"已收藏";
+                                            $("#like").html(text);
                                         }else{
                                             $(".cartMsg").html(data.errMsg).show().animate({width: '280px'}, 200)
                                                     .fadeOut(2000,function(){$(".cartMsg").width(0)});
@@ -233,4 +234,4 @@ html
                                 buy(1)
                             })
 
-        include footer
+    include footer

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>提交订单</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="css/mui.min.css">
+
+    <link rel="stylesheet" href="css/mui.picker.css">
+    <link rel="stylesheet" href="css/rrb.css">
+    <script src="js/juicer-min.js"></script>
+    <script src="js/rem.js"></script>
+    <script src="js/cart.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        .mui-content {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .prodect-bar {
+            background-color: #f7f7f7;
+            height: 2rem;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: table;
+            height: 2rem;
+            padding: 0;
+            table-layout: fixed;
+            color: #003147;
+            z-index: 50;
+        }
+
+        .tab-item {
+            height: 2rem;
+            font-size: 0.75rem;
+            color: #000;
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 500;
+        }
+
+        .tab-item .mui-icon {
+            font-size: 1rem;
+            position: relative;
+            top: 3px;
+            width: 24px;
+            height: 24px;
+            color: #6c6c6c;
+            z-index: 20;
+        }
+
+        .tab-item .mui-icon.mui-active {
+            color: orange;
+        }
+
+        .tab-item .mui-tab-label {
+            font-size: 0.4rem;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #003147;
+            font-weight: 300;
+        }
+
+        .mui-backdrop {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 998;
+            background-color: rgba(0, 0, 0, .8);
+        }
+
+        .mui-poppicker span.mui-icon {
+            font-size: 0.7rem
+        }
+
+        .cart {
+            position: absolute;
+            background: #F0f0f0;
+            opacity: 0.8;
+            height: 1.8rem;
+            width: 1.8rem;
+            border-radius: 50%;
+            display: block;
+            top: 2.6rem;
+            right: 1rem;
+            z-index: 999;
+        }
+
+        .prodectInfo {
+            padding-bottom: 2rem;
+            height: 100%;
+            overflow-y: scroll;
+        }
+
+        .prodectInfo .mui-table-view .mui-media-object {
+            line-height: 4rem;
+            max-width: 4rem;
+            height: 4rem;
+        }
+
+        .prodectInfo .mui-media-body {
+            position: absolute;
+            left: 4.8rem;
+            height: 5rem;
+            width: 9.3rem;
+        }
+
+        .prodectInfo .mui-media-body .price {
+            position: absolute;
+            bottom: 1rem;
+            width: 5rem;
+            color: red;
+        }
+
+        .prodectInfo .mui-media-body .count {
+            position: absolute;
+            bottom: 0.9rem;
+            right: 0.6rem;
+        }
+
+    </style>
+</head>
+
+<body>
+<header class="mui-bar mui-bar-nav">
+    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+
+    <h1 class="mui-title">提交订单</h1>
+</header>
+<div class="mui-content">
+    <div class="prodectInfo mui-content-padded">
+        <h5>收货人信息</h5>
+
+        <form class="mui-input-group">
+            <div class="mui-input-row">
+                <label>工号</label>
+                <input type="text" id="jobNO" placeholder="请输入8位数字的工号">
+            </div>
+            <div class="mui-input-row">
+                <label>姓名</label>
+                <input type="text" id="name" class="mui-input-clear" placeholder="请输入姓名">
+            </div>
+
+            <div class="mui-input-row">
+                <label>部门</label>
+                <input type="text" id="deptName" readonly="readonly" placeholder="选择部门">
+                <input type="hidden" id="dept">
+            </div>
+        </form>
+        <h5>收货方式</h5>
+
+        <div class="mui-input-group">
+            <div class="clear">
+                <div class="mui-input-row mui-radio  mui-pull-left mui-left" style="width: 5rem">
+                    <label>自提</label>
+                    <input name="logistical" type="radio" value="0" checked>
+                </div>
+                <div class="mui-input-row mui-radio mui-pull-left mui-left" style="width: 5rem;clear: none">
+                    <label>送货</label>
+                    <input name="logistical" type="radio" value="1">
+                </div>
+            </div>
+        </div>
+        <div id="addessBox" style="display: none;">
+            <h5>收货地址</h5>
+
+            <form class="mui-input-group">
+                <div class="mui-input-row">
+                    <label>选择地址</label>
+                    <select name="addess" id="addess" value="">
+                        <option value="">请选择</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div id="selfAddessBox">
+            <h5>自提说明</h5>
+
+            <form class="mui-input-group">
+                <div id="selfAddess" style="padding: 0.2rem 0.5rem;text-indent: 1rem">
+                </div>
+            </form>
+        </div>
+        <h5>下单留言</h5>
+
+        <div class="mui-input-row" style="margin: 10px 5px;">
+            <textarea id="remark" maxlength="1000" rows="5" placeholder="请输入您的其他要求..."></textarea>
+        </div>
+        <h5>商品详情</h5>
+
+        <div id="prodectList"></div>
+    </div>
+
+    <nav class="prodect-bar">
+        <a class="tab-item mui-text-right" style="width: 70%;padding-right: 1rem">
+            合计:￥<span id="total">0.00</span>
+        </a>
+        <a class="tab-item" id="submitOrder" style="background: #f1155d;width: 30%;color: #FFFFFF">
+            提交订单
+        </a>
+    </nav>
+</div>
+</body>
+<script src="js/mui.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/mui.picker.min.js"></script>
+<script>
+    mui.init();
+    var id = getQueryStringByName("id");
+    mui.ready(function () {
+        mui("body").on("change", "[name=logistical]", function () {
+            if (this.value == 0) {
+                document.getElementById("addessBox").style.display = "none";
+                document.getElementById("selfAddessBox").style.display = "block";
+            } else {
+                document.getElementById("addessBox").style.display = "block";
+                document.getElementById("selfAddessBox").style.display = "none";
+            }
+        })
+        document.getElementById("submitOrder").addEventListener("tap", function () {
+            var jobNo = document.getElementById("jobNO").value;
+            if (!/^[0-9]{8}$/.test(jobNo)) {
+                return mui.alert("请输入8位数字的工号!", '提示', '确认', function () {
+                    document.getElementById("jobNO").focus();
+                });
+            }
+            var name = document.getElementById("name").value.trim()
+            if (!name) {
+                return mui.alert("请输入姓名!", '提示', '确认', function () {
+                    document.getElementById("name").focus();
+                });
+            }
+            var result = /^[\u4e00-\u9fa5]+$/.test(name);
+            if (!(result && name.length < 11)) {
+                return mui.alert("请输10字以内的汉字!", '提示', '确认', function () {
+                    document.getElementById("name").focus();
+                });
+            }
+            var dept = document.getElementById("dept").value;
+            if (!dept) {
+                return mui.alert("请选择部门!", '提示', '确认', function () {
+                    mui.trigger(document.getElementById("deptName"), "tap");
+                });
+            }
+            var logistical = document.querySelector("[name=logistical]:checked").value;
+            var remark = document.getElementById("remark").value;
+            var addess = document.getElementById("addess").value;
+            var params = {
+                "id": id,
+                "jobNO": jobNo,
+                "name": name,
+                "dept": dept,
+                "logistical": logistical,
+                "remark": remark
+            };
+            if (logistical == "1") {
+                params.addess = addess;
+            }
+            mui.post('/order/submitOrder', params, function (data, status) {
+                if (!data.errMsg) {
+                    for (var i = 0; i < prodectArr.length; i++) {
+                        cartObj.delProdect(prodectArr[i].prodectId);
+                    }
+                    window.location.href = "me.html";
+                } else {
+                    mui.alert(data.errMsg, '错误', '确认');
+                }
+            })
+        })
+        var cartObj = new cart();
+        var prodectArr = [];
+        mui.ajax({
+            url: "/order/getOrder",
+            data: {"id": id},
+            type: "post",
+            success: function (data) {
+                if (data.message) {
+                    return mui.alert(data.message, "错误", "确定", function () {
+                        window.history.go(-1);
+                    });
+                }
+                dept(data.deptList)
+                var addessSel = document.getElementById("addess");
+                for (var i = 0; i < data.addessList.length; i++) {
+                    addessSel.appendChild(new Option(data.addessList[i].name, data.addessList[i]._id))
+                }
+                document.getElementById("selfAddess").innerHTML = data.selfAddess.toString();
+                document.getElementById("prodectList").innerHTML = juicer(document.getElementById("prodect").innerHTML, data);
+                document.getElementById("total").innerHTML = data.total.toFixed(2);
+                prodectArr = data.prodects;
+                if (data.jobNo) {
+                    document.getElementById("jobNO").value = data.jobNo;
+                }
+            }
+        });
+        if (is_weixin()) {
+            document.querySelector(".cart").style.top = "0.6rem";
+        }
+    })
+    function dept(data) {
+        for (var i = 0; i < data.length; i++) {
+            data[i].value = data[i].id;
+            data[i].text = data[i].name;
+            if (data[i].children && data[i].children.length > 0) {
+                for (var j = 0; j < data[i].children.length; j++) {
+                    data[i].children[j].value = data[i].children[j].id;
+                    data[i].children[j].text = data[i].children[j].name;
+                }
+            }
+        }
+        //级联示例
+        var cityPicker = new mui.PopPicker({
+            layer: 2
+        });
+        cityPicker.setData(data);
+        document.getElementById('deptName').addEventListener('tap', function (event) {
+            var self = this;
+            cityPicker.show(function (items) {
+                if (items[1].value) {
+                    self.value = items[1].text;
+                    document.getElementById("dept").value = items[1].value;
+                } else {
+                    self.value = items[0].text;
+                    document.getElementById("dept").value = items[0].value;
+                }
+            });
+        }, false);
+    }
+</script>
+
+<script type="text/template" id="prodect">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+        {@if prodects.length>0}
+        {@each prodects as prodect}
+        <li class="mui-table-view-cell mui-media" data-id="${prodect.prodectId}">
+            <div class="mui-table">
+                <div class="mui-table-cell mui-col-xs-12">
+                    <img class="mui-media-object mui-pull-left" src="${prodect.img}">
+
+                    <div class="mui-media-body">
+                        <h4>${prodect.prodectName}</h4>
+                        <h5>分类： ${prodect.categoryName}</h5>
+                        <h4 class="price">￥${prodect.price.toFixed(2)}</h4>
+                        <h4 class="count">数量:${prodect.count}</h4>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {@/each}
+        {@else}
+        <li class="mui-table-view-cell">
+            <div class="mui-table">
+                <div class="mui-table-cell mui-col-xs-10">
+                    <h3>暂无商品</h3>
+                </div>
+            </div>
+        </li>
+        {@/if}
+    </ul>
+</script>
+</html>

@@ -238,7 +238,7 @@
     }
 
     function changStatus(id, status) {
-        $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该菜单吗？", function (r) {
+        $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该部门吗？", function (r) {
             if (r) {
                 $.ajax({
                     url: "/manage/dept/changeStatus",

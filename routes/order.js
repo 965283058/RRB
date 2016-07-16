@@ -6,7 +6,7 @@ var cart = require('./cart');
 var db = require("../db/Schema");
 var Schema = require("mongoose").Schema;
 var async = require("async");
-var fs=require("fs");
+var fs = require("fs");
 
 router.use('/submitCart', function (req, res, next) {
     var prodects = req.body.prodects;
@@ -19,13 +19,27 @@ router.use('/submitCart', function (req, res, next) {
 
 router.get('/:id', function (req, res, next) {
     var id = req.params.id;
+    getOrder(id, false, req, res);
+
+})
+router.post('/getOrder', function (req, res, next) {
+    var id = req.body.id;
+    getOrder(id, true, req, res);
+})
+function getOrder(id, isMoblie, req, res) {
     var prodects = req.session["prodect_" + id];
-    //var type = req.session["order_" + id];
     if (!prodects) {
-        res.render('error', {
+        var result = {
             message: "未找到订单,请返回购物车重新结算！",
             error: null
-        });
+        }
+        if (isMoblie) {
+            res.json(result)
+        }
+        else {
+            res.render('error', result);
+        }
+        return;
     }
     async.parallel({
         addess: function (cb) {
@@ -68,7 +82,7 @@ router.get('/:id', function (req, res, next) {
             });
         },
         selfAddess: function (cb) {
-            fs.readFile("../uploads/selfAddess.txt", function (err, data) {
+            fs.readFile("../uploads/selfAddess.txt", 'utf-8', function (err, data) {
                 if (!err) {
                     cb(null, data);
                 } else {
@@ -89,19 +103,29 @@ router.get('/:id', function (req, res, next) {
                 "total": total,
                 "id": id.toString(),
                 "jobNo": req.session["jobNo"],
-                "selfAddess":results.selfAddess
+                "selfAddess": results.selfAddess
             }
-            res.render('order', json);
+            if (isMoblie) {
+                res.json(json);
+            } else {
+                res.render('order', json);
+            }
+
         } else {
-            res.render('error', {
-                message: err.message,
-                error: err
-            });
+            if (isMoblie) {
+                res.json({
+                    message: err.message,
+                    error: err
+                });
+            } else {
+                res.render('error', {
+                    message: err.message,
+                    error: err
+                });
+            }
         }
     });
-
-
-})
+}
 
 router.post("/submitOrder", function (req, res, next) {
     var id = req.body.id;
@@ -173,45 +197,74 @@ router.post("/submitOrder", function (req, res, next) {
                     res.json({});
                 }
                 else {
-                    res.json({"errMsg": "提交失败:" + saveErr.errMsg});
+                    res.json({"errMsg": "提交失败:" + saveErr.message});
                 }
             })
         } else {
-            res.json({"errMsg": err.errmsg || "未查询到订单商品！"});
+            res.json({"errMsg": err.message || "未查询到订单商品！"});
         }
     })
 })
 
 router.get("/delOrder/:id", function (req, res, next) {
     var id = req.params.id;
+    delOrder(id, false, res);
+})
+router.post("/delOrder", function (req, res, next) {
+    var id = req.body.id;
+    delOrder(id, true, res);
+})
+function delOrder(id, isMoblie, res) {
     db.Order.findOne({"_id": id}, function (err, order) {
         if (!err && order) {
             if (order.status == 0 || order.status == -2) {
-                res.render('error', {
+                var errJosn = {
                     message: "订单不可删除",
                     error: null
-                });
+                };
+                if (isMoblie) {
+                    res.json(errJosn);
+                } else {
+                    res.render('error', errJosn);
+                }
+
             } else {
                 order.status = -2;
                 order.save(function (err) {
-                    if (!err) {
-                        res.redirect("/me");
+                    if (isMoblie) {
+                        if (!err) {
+                            res.json({});
+                        } else {
+                            res.json({
+                                message: err.message,
+                                error: err
+                            });
+                        }
                     } else {
-                        res.render('error', {
-                            message: err.message,
-                            error: err
-                        });
+                        if (!err) {
+                            res.redirect("/me");
+                        } else {
+                            res.render('error', {
+                                message: err.message,
+                                error: err
+                            });
+                        }
                     }
                 })
             }
         } else {
-            res.render('error', {
+            var errJosn = {
                 message: err.message || "未找到该订单！",
                 error: err
-            });
+            };
+            if (isMoblie) {
+                res.json(errJosn);
+            } else {
+                res.render('error', errJosn);
+            }
         }
     })
-})
+}
 
 router.post("/cancalOrder", function (req, res, next) {
     var id = req.body.id;
@@ -239,7 +292,8 @@ router.post("/cancalOrder", function (req, res, next) {
 router.post("/evaluate", function (req, res, next) {
     var jobNo = req.session.jobNo;
     if (!jobNo) {
-        res.json({"errMsg": "请输入工号!"});
+        res.json({"message": "请输入工号!"});
+        return;
     }
     var prodectId = req.body.prodectId;
     var leveal = req.body.leveal;
@@ -256,12 +310,47 @@ router.post("/evaluate", function (req, res, next) {
     })
     evaluate.save(function (error) {
         if (!error) {
+            db.Order.findOne({"_id": orderId}, function (orderErr, order) {
+                if(!orderErr&&order){
+                    for (var i = 0; i < order.prodectList.length; i++) {
+                        if (order.prodectList[i].prodectId == prodectId) {
+                            order.prodectList[i].evaluateId = evaluate._id;
+                            break;
+                        }
+                    }
+                    var isAll = true;
+                    for (var i = 0; i < order.prodectList.length; i++) {  //查看是否还有未评分的商品
+                        if (!order.prodectList[i].evaluateId) {
+                            isAll = false;
+                            break;
+                        }
+                    }
+                    if (isAll) {//如果所有商品都已评分
+                        order.status = 2;
+                    }
+                    order.save();
+                }else{
+                    console.info(orderErr||"没找到订单")
+                }
+            })
             res.json({});
         } else {
-            res.json({"errMsg": error.message});
+            res.json({"message": error.message});
         }
     })
 })
 
-
+router.post("/getOrderInfo", function (req, res, next) {
+    var id = req.body.id;
+    var query = db.Order.findOne({
+        "_id": id
+    }).populate('prodectList.prodectId', 'prodectName img').populate('dept', 'name').populate('sender', 'email name').populate('addess', 'name');
+    query.exec(function (error, data) {
+        if (!error) {
+            res.json(data);
+        } else {
+            res.json({"message": error.message || "未找到改订单"});
+        }
+    })
+})
 module.exports = router;

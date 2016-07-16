@@ -161,7 +161,7 @@
                         width: '14%',
                         align: 'center',
                         formatter: function (value, row, index) {
-                            return '<a href="#" style="color: blue;text-decoration: none">' + (   row.status ? "禁用" : "启用") + '<a>';
+                            return '<a href="#"  onclick="changStatus(\'' + row._id + '\',\'' + row.status + '\')" class="gridCellBtn" >' + (   row.status ? "禁用" : "启用") + '<a>';
                         }
                     }
                 ]],
@@ -279,7 +279,24 @@
 
         }
 
+
+
     })
+    function changStatus(id, status) {
+        $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该类别吗？", function (r) {
+            if (r) {
+                $.ajax({
+                    url: "/manage/category/changeStatus",
+                    type: "post",
+                    data: {"id": id},
+                    succ: function (res) {
+                        $.messager.alert("提示", (status == "0" ? "启用" : "禁用") + "成功", "info");
+                        $("#dg").datagrid("reload");
+                    }
+                })
+            }
+        })
+    }
 </script>
 </body>
 </html>

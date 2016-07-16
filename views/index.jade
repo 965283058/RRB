@@ -14,8 +14,8 @@ html
                 div.pos.l.f12
                     a(href="/")人人币交易平台首页
                     a(href="/")
-                    &lt;共
-                    em="18万"
+                    &gt;共
+                    em=count
                     span="件商品"
                 dl.l.f12.td1.mtop5
                     dt.tn.l 商品分类
@@ -38,7 +38,7 @@ html
         div.w1016.c
                 div.goodlist.l
                     each category in categorys
-                        if(category.prodects.length>0)
+                        if(category.prodects&&category.prodects.length>0)
                             div.category.clear
                                 span.categoryName=category.categoryName
                                 ul.w.l.lili.lile.f12

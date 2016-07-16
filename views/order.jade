@@ -117,9 +117,25 @@ html
                                 $.extend($.fn.validatebox.defaults.rules, {
                                     jobNO: {
                                         validator: function (value) {
-                                           return /[0-9]{8}/.test(value)
+                                           return /^[0-9]{8}$/.test(value)
                                         },
                                         message: '工号必须是8位数字!'
+                                    },
+                                    cnName: {// 验证中文
+                                          validator: function (value, param) {
+                                                 var result = /^[\u4e00-\u9fa5]+$/.test(value);
+                                                 if (result) {
+                                                     var len = value.length;
+                                                     if (len >= param[0] && len <= param[1]) {
+                                                         return true;
+                                                     } else {
+                                                        return false;
+                                                     }
+                                                 } else {
+                                                    return false;
+                                                 }
+                                          },
+                                          message: '请输入{0}-{1}个汉字'
                                     }
                                 });
                                 $("#orderForm input[name=jobNO]").validatebox({
@@ -131,7 +147,9 @@ html
                                 $("#orderForm input[name=name]").validatebox({
                                     required: true,
                                     missingMessage: "请输入您的姓名!",
-                                    validateOnCreate: false
+                                    validateOnCreate: false,
+                                    validType:'cnName[1,10]',
+                                    invalidMessage:"请输入10字以内的汉字"
                                 })
                                 $("#dept").combo({
                                     width:180,

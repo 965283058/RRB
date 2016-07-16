@@ -46,7 +46,7 @@ html
                                 span.center(style="width:120px;display:inline-block")="状态"
                                 span.center(style="width:120px;display:inline-block")="操作"
                     mixin orderInfo(order)
-                        dl.orderInfo
+                        dl.orderInfo(orderId=order._id)
                             dt
                                 span.time=order.createTimeCN
                                 span.id="订单号："+order._id
@@ -54,7 +54,7 @@ html
                                     span.logistical="送货-"+order.addess.name
                                 else
                                     span.logistical="自提"
-                                if(order.status==-1||order.status==1||order.status==2||order.status==0)
+                                if(order.status==-1||order.status==1||order.status==2)
                                     a.btn.r.mtop3(href="/order/delOrder/"+order._id)="删除"
                                 each prodect,index in order.prodectList
                                     dd.clear
@@ -108,6 +108,7 @@ html
                                         span="商品:"
                                             a(href="/prodect/"+evaluate.prodectId._id)=evaluate.prodectId.prodectName
                                         +raty(evaluate.level)
+                                        a(href="#"+evaluate.orderId,orderInfo="true",style="margin-left:15px")="查看订单"
                                         span="时间:"+ evaluate.createTimeCN
                                     span.content=evaluate.content
 
@@ -161,10 +162,24 @@ html
                 if(jobNO==''){
                     login()
                 }
+                $("a[orderInfo]").click(function(){
+                    var id= $(this).attr("href").replace("#","");
+                    if(id){
+                        $("li[index=2]").click();
+                        $("dl[orderid="+ id +"]").css("border-color","red");
+                        $("body").scrollTop($("dl[orderid="+id+"]").offset().top);
+                        setTimeout(function(){
+                           $("dl[orderid="+ id +"]").css("border-color","#CCCCCC");
+                        },2000);
+                    }
+                })
             })
             function login(){
                 $.messager.prompt('提示信息', '请输入你的工号：', function (r) {
                     if (r) {
+                        if(!/^[0-9]{8}$/.test(r)){
+                            return $.messager.alert("提示","工号必须为8位数字!","warning",login)
+                        }
                         $.post("/me/login",{"jobNo":r},function(data){
                             if(data.errMsg){
                                 $.messager.alert("错误",data.errMsg,"error",login);
@@ -204,12 +219,12 @@ html
                             var prodectId=$("#Evaluate select[name=prodectId]").val();
                             var leveal=$("#Evaluate input[name=leveal]").val();
                             var content=$("#Evaluate textarea").val();
-                            $.post("order/evaluate",{"prodectId":prodectId,"leveal":leveal,"content":content,"orderId":id},function(data){
-                                if(!data.errMsg){
+                            $.post("/order/evaluate",{"prodectId":prodectId,"leveal":leveal,"content":content,"orderId":id},function(data){
+                                if(!data.message){
                                     $('#Evaluate').dialog("destroy")
                                     window.location.reload();
                                 }else{
-                                    alert(data.errMsg);
+                                    alert(data.message);
                                 }
                             })
                         }
@@ -223,6 +238,9 @@ html
                     if(orders[i]._id==id){
                         var order=orders[i]
                         for(var j=0;j<order.prodectList.length;j++){
+                            if(order.prodectList[j].evaluateId){
+                                continue;
+                            }
                             html+="<option value='"+order.prodectList[j].prodectId._id+"'>"+order.prodectList[j].prodectId.prodectName+"</option>"
                         }
                     }
@@ -230,11 +248,12 @@ html
 
 
 
-                html+="</select></td></tr><tr><td>评分：</td><td><div id='Evaluate_raty'></div><input type='hidden' name='leveal' id='leveal' value='0' /></td></tr><td>评价：</td><td><textarea style='width:320px;height: 80px'></textarea></td></tr></table>";
+                html+="</select></td></tr><tr><td>评分：</td><td><div id='Evaluate_raty'></div><input type='hidden' name='leveal' id='leveal' value='0' /></td></tr><td>评价：</td><td><textarea maxlength='500' style='width:320px;height: 80px'></textarea></td></tr></table>";
                 $('#Evaluate').append(html);
 
                 $("#Evaluate_raty").raty({
-                    targetScore: '#leveal'
+                    targetScore: '#leveal',
+                    cancel: true
                 });
 
             }

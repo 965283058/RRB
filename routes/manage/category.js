@@ -66,4 +66,47 @@ router.use('/getCategory', function (req, res, next) {
     })
 });
 
+router.post('/changeStatus', function (req, res, next) {
+    var id = req.body.id;
+    db.Category.findOne({"_id": id}, function (err, cate) {
+        if (!err && cate) {
+            if(cate.status==1) {
+                db.Prodect.count({"categoryId": id, "status": 1}, function (err, count) {
+                    if (!err) {
+                        if (count > 0) {
+                            res.json({"status": 32, "message": "该类别下有未下架的商品,无法禁用该类别！"});
+                        } else {
+                            cate.status = Math.abs(cate.status - 1);
+                            cate.save(function (err) {
+                                if (!err) {
+                                    res.json({});
+                                } else {
+                                    res.json({"status": 21, "message": err.message});
+                                }
+                            })
+                        }
+                    } else {
+                        res.json({"status": 23, "message": err.message});
+                    }
+                })
+            }else{
+                cate.status = Math.abs(cate.status - 1);
+                cate.save(function (err) {
+                    if (!err) {
+                        res.json({});
+                    } else {
+                        res.json({"status": 21, "message": err.message});
+                    }
+                })
+            }
+
+        } else {
+            res.json({"status": 22, "message": err ? err.message : "未找到该分类！"});
+        }
+    })
+
+
+
+});
+
 module.exports = router;

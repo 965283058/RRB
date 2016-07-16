@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>订单详情</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="css/mui.min.css">
+    <link rel="stylesheet" href="css/mui.picker.css">
+    <link rel="stylesheet" href="css/rrb.css">
+    <script src="js/juicer-min.js"></script>
+    <script src="js/rem.js"></script>
+    <script src="js/mui.min.js"></script>
+    <script src="js/common.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        .mui-content {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .prodectInfo {
+            padding-bottom: 2rem;
+            height: 100%;
+            overflow-y: scroll;
+        }
+
+        .prodectInfo .mui-table-view .mui-media-object {
+            line-height: 4rem;
+            max-width: 4rem;
+            height: 4rem;
+        }
+
+        .prodectInfo .mui-media-body {
+            position: absolute;
+            left: 4.8rem;
+            height: 5rem;
+            width: 9.3rem;
+        }
+
+        .prodectInfo .mui-media-body .price {
+            width: 5rem;
+            color: red;
+        }
+
+        .prodectInfo .mui-media-body .subTotal {
+            position: absolute;
+            bottom: 1rem;
+            width: 5rem;
+        }
+
+        .prodectInfo .mui-media-body .subTotal span {
+            color: red;
+        }
+
+        .prodectInfo .mui-media-body .count {
+            position: absolute;
+            bottom: 1rem;
+            right: 0.6rem;
+        }
+
+        /*.mui-radio input[type=radio][disabled]:before {
+            opacity: 1 !important;
+        }*/
+
+        .evaluate {
+            padding-right: .5rem;
+        }
+
+        .ratyBox {
+            height: 35px;
+            padding: 5px;
+            margin-left: 1rem;
+        }
+
+
+        .mui-poppicker {
+            position: fixed;
+            left: 0px;
+            width: 100%;
+            z-index: 999;
+            border-top: solid 1px #ccc;
+            box-shadow: 0px -5px 7px 0px rgba(0, 0, 0, 0.1);
+            -webkit-transition: .3s;
+
+
+            top: 0px;
+            -webkit-transform: translateY(-100%);
+            height: 80%;
+            background: #efeff4;
+            overflow: hidden;
+        }
+
+        .mui-poppicker.mui-active {
+            -webkit-transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+<header class="mui-bar mui-bar-nav">
+    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+
+    <h1 class="mui-title">订单详情</h1>
+</header>
+<div class="mui-content">
+</div>
+<div id='evaluateBox' class="mui-poppicker">
+    <div class="mui-content-padded">
+        <h5>评分</h5>
+
+        <div id="ratyBox" class="ratyBox">
+            <span class="clear mui-icon mui-icon-minus mui-pull-left mui-active"></span>
+            <a class="mui-icon mui-icon-star"></a>
+            <a class="mui-icon mui-icon-star"></a>
+            <a class="mui-icon mui-icon-star"></a>
+            <a class="mui-icon mui-icon-star"></a>
+            <a class="mui-icon mui-icon-star"></a>
+            <input type="hidden" id="level" value="0"/>
+            <input type="hidden" id="prodectId" value="0"/>
+        </div>
+        <h5>评价</h5>
+
+        <div class="mui-input-row" style="margin: 10px 5px;">
+            <textarea id="content" maxlength="500" rows="10" placeholder="请输入您的评价..."></textarea>
+        </div>
+        <button class="mui-btn-block mui-btn-blue" id="submitEvaluate">提交</button>
+    </div>
+</div>
+
+</body>
+
+<script>
+    mui.init();
+    var id = getQueryStringByName("id");
+
+    mui.ready(function () {
+        var mask = mui.createMask(function () {
+            document.querySelector("#evaluateBox").classList.remove("mui-active");
+        });
+        mui("body").on("tap", ".evaluate", function () {
+            document.querySelector("#prodectId").value = this.dataset.id;
+            document.querySelector("#evaluateBox").classList.add("mui-active");
+            mask.show();//显示遮罩
+        });
+        mui("body").on("tap", "a", function () {
+             window.location=this.href;
+        });
+        (function () {
+            var star = document.querySelectorAll('#ratyBox a');
+            var oDiv = document.querySelector('#ratyBox');
+            var temp = 0;
+            for (var i = 0, len = star.length; i < len; i++) {
+                star[i].index = i;
+                star[i].addEventListener("tap", function () {
+                    temp = this.index + 1;
+                    clear();
+                    current(temp);
+                    document.getElementById("level").value = temp;
+                })
+            }
+            document.querySelector("#ratyBox .clear").addEventListener("tap", function () {
+                clear();
+                document.getElementById("level").value = 0;
+            })
+
+            //清除所有
+            function clear() {
+                for (var i = 0, len = star.length; i < len; i++) {
+                    star[i].className = 'mui-icon mui-icon-star';
+                }
+            }
+
+            //显示当前第几颗星
+            function current(temp) {
+                for (var i = 0; i < temp; i++) {
+                    star[i].className = "mui-icon mui-icon-star-filled"
+                }
+            }
+        })();
+        document.getElementById("submitEvaluate").addEventListener("tap", function () {
+            var prodectId = document.getElementById("prodectId").value;
+            var leveal = document.getElementById("level").value;
+            var content = document.getElementById("content").value;
+            mui.post("/order/evaluate", {
+                "prodectId": prodectId,
+                "leveal": leveal,
+                "content": content,
+                "orderId": id
+            }, function (data) {
+                if (!data.message) {
+                    return mui.alert("评价成功!", "提示", "确定", function () {
+                        window.location.reload();
+                    });
+                } else {
+                    mui.alert(data.message, "提示", "确定");
+                }
+            })
+        });
+
+        mui.ajax({
+            url: "/order/getOrderInfo",
+            data: {"id": id},
+            type: "post",
+            success: function (data) {
+                if (!data) {
+                    mui.alert("未找到该订单!", "错误", "确定", function () {
+                        mui.back();
+                    });
+                }
+                if (data.message) {
+                    return mui.alert(data.message, "错误", "确定", function () {
+                        mui.back();
+                    });
+                }
+                document.querySelector(".mui-content").innerHTML += juicer(document.getElementById("orderTemp").innerHTML, data);
+                document.getElementById("prodectList").innerHTML = juicer(document.getElementById("prodectTemp").innerHTML, data);
+                if (data.jobNo) {
+                    document.getElementById("jobNO").value = data.jobNo;
+                }
+            }
+        });
+        if (is_weixin()) {
+            document.querySelector(".cart").style.top = "0.6rem";
+        }
+
+    })
+    juicer.register('converToCNDate', converToCNDate);
+    function converToCNDate(ms, format) {
+        if (!ms && ms !== 0) {
+            return '';
+        }
+        var date = new Date();
+        date.setTime(ms);
+        var year = date.getFullYear(),
+                month = date.getMonth() + 1,
+                day = date.getDate(),
+                hh = date.getHours(),
+                mm = date.getMinutes(),
+                ss = date.getSeconds();
+
+        format = format || "datetime";
+        switch (format) {
+            case "datetime":
+                return year + "-" + padLeft(month) + "-" + padLeft(day) + " " + padLeft(hh) + ":" + padLeft(mm) + ":" + padLeft(ss);
+            case "date":
+                return year + "-" + padLeft(month) + "-" + padLeft(day);
+            case "time":
+                return padLeft(hh) + ":" + padLeft(mm) + ":" + padLeft(ss);
+            default :
+                return "";
+        }
+
+        function padLeft(number) {
+            if (parseInt(number) < 10) {
+                return '0' + number;
+            }
+            return number;
+        }
+    }
+    ;
+</script>
+
+<script type="text/template" id="orderTemp">
+    <div class="prodectInfo mui-content-padded">
+        <h5>订单信息</h5>
+
+        <form class="mui-input-group">
+            <div class="mui-input-row">
+                <label>下单时间</label>
+                <input type="text" value="${createTimeCN}" readonly>
+            </div>
+            <div class="mui-input-row">
+                <label>订单状态</label>
+                <input type="text" value='${status==0?"未发货":status==1?"已发货":status==2?"已评价":status==-1?"已取消":"已删除"}' readonly>
+            </div>
+            <div class="mui-input-row">
+                <label>金额</label>
+                <input type="text" value="${money.toFixed(2)}" readonly>
+            </div>
+            {@if status>0}
+            <div class="mui-input-row">
+                <label>发货人</label>
+                <input type="text" value='${sender&&sender.name}' readonly>
+            </div>
+            <div class="mui-input-row">
+                <label>发货时间</label>
+                <input type="text" value="${sendTime|converToCNDate}" readonly>
+            </div>
+            {@/if}
+        </form>
+        <h5>收货人信息</h5>
+
+        <form class="mui-input-group">
+            <div class="mui-input-row">
+                <label>工号</label>
+                <input type="text" id="jobNO" value="${jobNo}" readonly>
+            </div>
+            <div class="mui-input-row">
+                <label>姓名</label>
+                <input type="text" value="${name}" readonly>
+            </div>
+            <div class="mui-input-row">
+                <label>部门</label>
+                <input type="text" value="${dept.name}" readonly>
+            </div>
+        </form>
+        <h5>收货方式</h5>
+
+        <div class="mui-input-group">
+            <div class="clear">
+                <div class="mui-input-row mui-radio  mui-pull-left mui-left" style="width: 5rem">
+                    <label>自提</label>
+                    <input type="radio" ${logistical==0?"checked":""} disabled>
+                </div>
+                <div class="mui-input-row mui-radio mui-pull-left mui-left" style="width: 5rem;clear: none">
+                    <label>送货</label>
+                    <input type="radio" ${logistical==1?"checked":""} disabled>
+                </div>
+            </div>
+        </div>
+        {@if logistical==1}
+        <div id="addessBox">
+            <h5>收货地址</h5>
+
+            <form class="mui-input-group">
+                <textarea readonly>${addess.name}</textarea>
+            </form>
+        </div>
+        {@/if}
+        <h5>下单留言</h5>
+        <form class="mui-input-group">
+            <div style="padding: 0.2rem 0.3rem;text-indent: 1rem;font-size: 0.7rem;min-height: 1.7rem">
+                ${remark}
+            </div>
+        </form>
+        <h5>商品详情</h5>
+
+        <div id="prodectList"></div>
+    </div>
+</script>
+
+<script type="text/template" id="prodectTemp">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+        {@each prodectList as prodect}
+        <li class="mui-table-view-cell mui-media">
+            <div class="mui-table">
+                <div class="mui-table-cell mui-col-xs-12">
+                    <a href="prodect.html?id=${prodect.prodectId._id}"><img class="mui-media-object mui-pull-left"
+                                                                            src="${prodect.prodectId.img[0]}"></a>
+
+                    <div class="mui-media-body">
+                        <h4><a href="prodect.html?id=${prodect.prodectId._id}">${prodect.prodectId.prodectName}</a></h4>
+                        {@if status==1&&!prodect.evaluateId}
+                        <a data-id="${prodect.prodectId._id}" class="mui-pull-right evaluate" href="javasrcipt:void(0)"><h4>
+                            评价</h4></a>
+                        {@/if}
+                        <h4 class="price">￥${prodect.price.toFixed(2)}</h4>
+                        <h4 class="subTotal">小计: <span>￥${(prodect.price*prodect.count).toFixed(2)}</span></h4>
+                        <h4 class="count">数量:${prodect.count}</h4>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {@/each}
+    </ul>
+</script>
+</html>

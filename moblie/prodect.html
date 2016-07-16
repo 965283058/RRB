@@ -10,8 +10,10 @@
 
     <!--标准mui.css-->
     <link rel="stylesheet" href="css/mui.min.css">
+    <link rel="stylesheet" href="css/rrb.css">
     <script src="js/juicer-min.js"></script>
     <script src="js/rem.js"></script>
+    <script src="js/cart.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -47,12 +49,13 @@
             padding: 0.2rem 0.3rem;
             color: #e20808;
         }
-        .categoryName{
+
+        .categoryName {
             display: block;
             float: right;
             color: #000;
             font-size: .6rem;
-            padding-right: 0.5rem ;
+            padding-right: 0.5rem;
         }
 
         .prodectPrice span {
@@ -140,6 +143,33 @@
             visibility: hidden;
         }
 
+        .mui-backdrop {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 998;
+            background-color: rgba(0, 0, 0, .8);
+        }
+
+        .mui-poppicker span.mui-icon {
+            font-size: 0.7rem
+        }
+
+        .cart {
+            position: absolute;
+            background: #F0f0f0;
+            opacity: 0.8;
+            height: 1.8rem;
+            width: 1.8rem;
+            border-radius: 50%;
+            display: block;
+            top: 2.6rem;
+            right: 1rem;
+            z-index: 999;
+        }
+
         .mui-poppicker {
             position: fixed;
             left: 0px;
@@ -157,20 +187,6 @@
 
         .mui-poppicker.mui-active {
             -webkit-transform: translateY(0px);
-        }
-
-        .mui-backdrop {
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 998;
-            background-color: rgba(0, 0, 0, .8);
-        }
-
-        .mui-poppicker span.mui-icon {
-            font-size: 0.7rem
         }
     </style>
 </head>
@@ -192,31 +208,37 @@
         </div>
     </div>
     <nav class="prodect-bar">
-        <a class="tab-item" style="width: 15%;border-right: 1px solid #656668" id="evaluate">
+        <a class="tab-item" style="width: 16%;border-right: 1px solid #656668" id="evaluate">
             <span class="mui-icon mui-icon-eye"></span>
             <span class="mui-tab-label">查看评价</span>
         </a>
-        <a class="tab-item" style="width: 14%" id="like">
+        <a class="tab-item" style="width: 16%" id="like">
             <span class="mui-icon mui-icon-star-filled"></span>
             <span class="mui-tab-label">收藏商品</span>
         </a>
-        <a class="tab-item" style="background: #d2aa6a;width: 35%">
+        <a class="tab-item" id="addCart" style="background: #d2aa6a;width: 32%">
             加入购物车
         </a>
-        <a class="tab-item" style="background: #f1155d;width: 35%">
+        <a class="tab-item" id="buy" style="background: #f1155d;width: 31%">
             立刻购买
         </a>
     </nav>
     <div id='evaluateList' class="mui-poppicker"></div>
+    <a href="cart.html" class="cart mui-icon" id="cart">
+        <span class="mui-icon-cart"></span>
+        <!--<span class="mui-badge">15</span>-->
+    </a>
 </div>
 </body>
 <script src="js/mui.min.js"></script>
 <script src="js/common.js"></script>
+
 <script>
     mui.init();
     var jobNo;
     mui.ready(function () {
         var id = getQueryStringByName("id");
+        var prodect;
         mui.ajax({
             url: "/prodect",
             data: {"prodectId": id},
@@ -224,6 +246,12 @@
             success: function (data) {
                 if (data.errMsg) {
                     return alert(data.errMsg);
+                }
+                prodect = data.prodect;
+                if(prodect.status!=1){
+                    return mui.alert("该商品已下架!", "提示", "确定", function () {
+                        mui.back();
+                    });
                 }
                 var html = "";
                 for (var i = 0; i < data.prodect.img.length - 1; i++) {
@@ -238,14 +266,17 @@
                 if (data.jobNo) {
                     jobNo = data.jobNo;
                 }
+                if (data.like) {
+                    document.querySelector("#like .mui-tab-label").innerHTML = "已收藏";
+                    document.querySelector("#like .mui-icon").className += " mui-active";
+                }
                 document.getElementById("evaluateList").innerHTML += (juicer(document.getElementById("evaluates").innerHTML, data));
 
                 mui(".mui-table-cell.mui-col-xs-10").each(function () {
                     var level = parseInt(this.querySelector(".level").getAttribute("level"), 10);
-                    console.info(level)
                     var eles = this.querySelectorAll(".mui-icon.mui-icon-star-filled");
-                    for(var i=0;i<eles.length;i++){
-                        if(i<level){
+                    for (var i = 0; i < eles.length; i++) {
+                        if (i < level) {
                             eles[i].classList.add("mui-active");
                         }
                     }
@@ -253,42 +284,88 @@
             }
         });
         document.getElementById("like").addEventListener("tap", function () {
-            if (mui("#like .mui-tab-label")[0].innerHTML != "已收藏") {
-                if (!jobNo) {
-                    mui.prompt('', '请输入8位数字', '请输入您的工号', ['确定', '取消'], function (e) {
-                        if (e.index == 0 && /[0-9]{8}/.test(e.value)) {
-                            jobNo = e.value;
-                            like();
-                        } else {
-                            mui.alert("请输入8位数字的工号!", "输入错误", "确定", null, 'div');
-                        }
-                    }, 'div')
-                } else {
-                    like();
-                }
+            var type = document.querySelector("#like .mui-tab-label").innerHTML == "已收藏" ? 1 : 0;
+            if (!jobNo) {
+                mui.prompt('', '请输入8位数字', '请输入您的工号', ['确定', '取消'], function (e) {
+                    if (e.index == 0 && /[0-9]{8}/.test(e.value)) {
+                        jobNo = e.value;
+                        like(type);
+                    } else {
+                        mui.alert("请输入8位数字的工号!", "输入错误", "确定", null, 'div');
+                    }
+                }, 'div')
+            } else {
+                like(type);
             }
         })
-        function like() {
+        function like(type) {
+            var url = type == 0 ? "/prodect/like" : "/prodect/cancelLike";
             var params = {"prodectId": id, "jobNo": jobNo};
-            mui.post("/prodect/like", params, function (data) {
+            mui.post(url, params, function (data) {
                 if (!data.errMsg) {
-                    mui("#like .mui-tab-label")[0].innerHTML = "已收藏";
-                    mui("#like .mui-icon")[0].className += " mui-active";
+                    if (type == 0) {
+                        document.querySelector("#like .mui-tab-label").innerHTML = "已收藏";
+                        document.querySelector("#like .mui-icon").classList.add("mui-active");
+                    } else {
+                        document.querySelector("#like .mui-tab-label").innerHTML = "收藏商品";
+                        document.querySelector("#like .mui-icon").classList.remove("mui-active");
+                    }
                 } else {
                     mui.alert(data.errMsg, "输入错误", "确定", null, 'div');
                 }
             }, "json")
         }
 
+        if (is_weixin()) {
+            document.querySelector(".cart").style.top = "0.6rem";
+        }
+        var cartObj = new cart();
+
         var mask = mui.createMask(function () {
-            mui("#evaluateList")[0].classList.remove("mui-active");
+            document.querySelector("#evaluateList").classList.remove("mui-active");
         });
 
         document.getElementById("evaluate").addEventListener("tap", function () {
-            mui("#evaluateList")[0].classList.add("mui-active");
+            document.querySelector("#evaluateList").classList.add("mui-active");
             mask.show();//显示遮罩
         })
 
+        document.getElementById("addCart").addEventListener("tap", function () {
+            var p = cartObj.getProdect(prodect._id);
+            if (p && p.count >= prodect.stock) {
+                mui.toast("商品库存不足");
+            } else {
+                cartObj.addProdect(prodect._id, 1, prodect.price);
+            }
+        })
+
+        document.getElementById("buy").addEventListener("tap", function () {
+            if (prodect.stock == 0) {
+                return mui.toast("商品库存不足");
+            }
+            var p = cartObj.getProdect(prodect._id);
+            var count = 1;
+            if (p) {
+                count = p.count;
+            }
+            var arr = [{
+                "prodectId": prodect._id,
+                "prodectName": prodect.prodectName,
+                "price": prodect.price,
+                "stock": prodect.stock,
+                "count": count,
+                "img": prodect.img[0],
+                "categoryId": prodect.categoryId._id,
+                "categoryName": prodect.categoryId.categoryName
+            }];
+            mui.post('/order/submitCart', {"prodects": JSON.stringify(arr)}, function (data, status) {
+                if (!data.errMsg) {
+                    window.location.href = "order.html?id=" + data.code;
+                } else {
+                    mui.alert(data.errMsg, '错误', '确认');
+                }
+            })
+        })
     })
 </script>
 <script type="text/template" id="prodectImg">
@@ -334,6 +411,7 @@
 
 <script type="text/template" id="evaluates">
     <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+        {@if evaluates.length>0}
         {@each evaluates as e}
         <li class="mui-table-view-cell">
             <div class="mui-table">
@@ -346,7 +424,8 @@
                         <span class="mui-icon mui-icon-star-filled"></span>
                         <span class="mui-icon mui-icon-star-filled"></span>
                     </h5>
-                    <p class="mui-h6 mui-ellipsis">评论：  ${e.content}</p>
+
+                    <p class="mui-h6 mui-ellipsis">评论： ${e.content}</p>
                 </div>
                 <div class="mui-table-cell mui-col-xs-12 mui-text-right">
                     <span class="mui-h5">时间：${e.createTimeCN}</span>
@@ -354,6 +433,15 @@
             </div>
         </li>
         {@/each}
+        {@else}
+        <li class="mui-table-view-cell">
+            <div class="mui-table">
+                <div class="mui-table-cell mui-col-xs-10">
+                    <h3>暂无评论</h3>
+                </div>
+            </div>
+        </li>
+        {@/if}
     </ul>
 </script>
 </html>

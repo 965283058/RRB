@@ -154,6 +154,12 @@
                 for (var j in data) {
                     for (var k in $scope.cartClass.cart) {
                         if (data[j]._id == $scope.cartClass.cart[k].prodectId) {
+                            if(data[j].stock==0){
+                                alert(data[j].prodectName+"已经没货了...");
+                                $scope.cartClass.delProdect(data[j]._id,false);
+                                cart.delProdect(data[j]._id,true);
+                                continue;
+                            }
                             $scope.cartClass.cart[k].prodectName = data[j].prodectName;
                             $scope.cartClass.cart[k].price = data[j].price;
                             $scope.cartClass.cart[k].stock = data[j].stock;
@@ -161,6 +167,10 @@
                             $scope.cartClass.cart[k].categoryId = data[j].categoryId._id;
                             $scope.cartClass.cart[k].categoryName = data[j].categoryId.categoryName;
                             $scope.cartClass.cart[k].check = false;
+                            if (data[j].stock < $scope.cartClass.cart[k].count) {
+                                $scope.cartClass.cart[k].count = data[j].stock;
+                                cart.update(data[j]._id, data[j].stock);
+                            }
                             break;
                         }
                     }

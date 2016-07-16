@@ -58,7 +58,7 @@ router.post('/add', upload.array('imgFile', 30), function (req, res, next) {
         if (!err) {
             res.end("{}");
         } else {
-            res.end(JSON.stringify({"status": 100, "message": err.errmsg}));
+            res.end(JSON.stringify({"status": 100, "message": err.message}));
         }
     });
 });
@@ -91,13 +91,14 @@ router.post('/edit', upload.array('imgFile', 30), function (req, res, next) {
             }
             prodect.save(function (err) {
                 if (!err) {
-                    res.end("{}");
+                    res.json({});
                 } else {
-                    res.end(JSON.stringify({"status": 100, "message": err.errmsg}));
+                    console.info(err)
+                    res.json({"status": 100, "message": err.message});
                 }
             });
         } else {
-            res.end(JSON.stringify({"status": 22, "message": err ? err.errmsg : "未找到该商品"}));
+            res.end(JSON.stringify({"status": 22, "message": err ? err.message : "未找到该商品"}));
         }
     });
 
@@ -152,13 +153,13 @@ router.use('/list', function (req, res, next) {
             }
             query.populate('categoryId', 'categoryName').populate('creator', 'email').populate('lastEidtor', 'email').exec(function (error, data) {
                 if (!error) {
-                    res.end(JSON.stringify({"rows": data || [], "page": page, "total": count}));
+                    res.json({"rows": data || [], "page": page, "total": count});
                 } else {
-                    res.end(JSON.stringify({"status": 100, "message": error.errmsg}));
+                    res.json({"status": 100, "message": error.message});
                 }
             })
         } else {
-            res.end(JSON.stringify({"status": 110, "message": err.errmsg}));
+            res.json({"status": 110, "message": err.message});
         }
     });
 });
@@ -169,16 +170,16 @@ router.post('/changeStatus', function (req, res, next) {
         if (!err && prodect) {
             prodect.status = Math.abs(prodect.status - 1);
             prodect.lastEidtor = req.session.admin._id;
-            prodect.lastEidtTime = new Date();
+            prodect.lastEidtTime = Date.now();
             prodect.save(function (err) {
                 if (!err) {
-                    res.end(JSON.stringify({}));
+                    res.json({});
                 } else {
-                    res.end(JSON.stringify({"status": 22, "message": err.errmsg}));
+                    res.json({"status": 22, "message": err.message});
                 }
             })
         } else {
-            res.end(JSON.stringify({"status": 22, "message": err ? err.errmsg : "未找到该商品"}));
+            res.json({"status": 22, "message": err ? err.message : "未找到该商品"});
         }
     })
 });
@@ -190,7 +191,7 @@ router.post('/getOne', function (req, res, next) {
             if (!err && prodect) {
                 res.json({"prodect": prodect});
             } else {
-                res.end(JSON.stringify({"status": 22, "message": err ? err.errmsg : "未找到该商品"}));
+                res.end(JSON.stringify({"status": 22, "message": err ? err.message : "未找到该商品"}));
             }
         }
     )
@@ -206,16 +207,16 @@ router.post('/addStock', function (req, res, next) {
         if (!err && prodect) {
             prodect.stock += addStock;
             prodect.lastEidtor = req.session.admin._id;
-            prodect.lastEidtTime = new Date();
+            prodect.lastEidtTime = Date.now();
             prodect.save(function (err) {
                 if (!err) {
                     res.end(JSON.stringify({}));
                 } else {
-                    res.end(JSON.stringify({"status": 22, "message": err.errmsg}));
+                    res.end(JSON.stringify({"status": 22, "message": err.message}));
                 }
             })
         } else {
-            res.end(JSON.stringify({"status": 22, "message": err ? err.errmsg : "未找到该商品"}));
+            res.end(JSON.stringify({"status": 22, "message": err ? err.message : "未找到该商品"}));
         }
     })
 });
@@ -223,23 +224,24 @@ router.post('/addStock', function (req, res, next) {
 router.post('/changeStock', function (req, res, next) {
     var id = req.body.id;
     var stock = parseInt(req.body.stock);
-    if (isNaN(stock) || stock <= 0) {
-        return res.end(JSON.stringify({"status": 22, "message": "库存数量错误!"}));
+    if (isNaN(stock) || stock < 0) {
+        return res.json({"status": 22, "message": "库存数量错误!"});
     }
     db.Prodect.findOne({"_id": id}, function (err, prodect) {
         if (!err && prodect) {
             prodect.stock = stock;
             prodect.lastEidtor = req.session.admin._id;
-            prodect.lastEidtTime = new Date();
+            prodect.lastEidtTime = Date.now();
             prodect.save(function (err) {
                 if (!err) {
-                    res.end(JSON.stringify({}));
+                    res.json({});
                 } else {
-                    res.end(JSON.stringify({"status": 22, "message": err.errmsg}));
+                    console.info(err)
+                    res.json({"status": 23, "message": err.message});
                 }
             })
         } else {
-            res.end(JSON.stringify({"status": 22, "message": err ? err.errmsg : "未找到该商品"}));
+            res.json({"status": 24, "message": err ? err.message : "未找到该商品"});
         }
     })
 });

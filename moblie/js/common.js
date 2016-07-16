@@ -16,7 +16,11 @@ function getQueryStringByName(name){
 
 
 if(is_weixin()){
-
-    document.getElementsByTagName("header")[0].style.display="none";
-    document.querySelector(".mui-content").style.paddingTop="0px";
+    mui.ready(function(){
+        document.querySelector("header").style.display="none";
+        document.querySelector(".mui-content").style.paddingTop="0px";
+    })
+}
+String.prototype.trim=function(){
+    return this.replace(/(^\s*)|(\s*$)/g, "");
 }

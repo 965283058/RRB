@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>个人中心</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="css/mui.min.css">
+    <link rel="stylesheet" href="css/rrb.css">
+    <script src="js/mui.min.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/juicer-min.js"></script>
+    <script src="js/rem.js"></script>
+</head>
+
+<body>
+
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    .mui-control-content {
+        height: 500px;
+    }
+
+    .imgbox {
+        width: 100%;
+        height: 4rem;
+        overflow-x: scroll !important;;
+        overflow-y: hidden;
+        padding: 0.25rem 0px;
+        background: #efefef;
+    }
+
+    .imgbox img {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+        display: inline;
+        margin-right: .2rem;
+        border: 1px solid #c0c0c0;
+        padding: 2px;
+    }
+    .level span.mui-icon {
+        font-size: 0.7rem;
+    }
+</style>
+<header class="mui-bar mui-bar-nav">
+    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+    <h1 class="mui-title">个人中心</h1>
+</header>
+<div class="mui-content">
+    <div id="segmentedControl" style="padding:1px 3px">
+        <div class="mui-segmented-control">
+            <a class="mui-control-item mui-active" href="#order">
+                未完成订单
+            </a>
+            <a class="mui-control-item" href="#orderList">
+                历史订单
+            </a>
+            <a class="mui-control-item" href="#likeList">
+                我的收藏
+            </a>
+            <a class="mui-control-item" href="#evaluateList">
+                我的评论
+            </a>
+        </div>
+    </div>
+    <div>
+        <div id="order" class="mui-control-content mui-active">
+            <div class="mui-scroll-wrapper">
+                <div class="mui-scroll">
+                </div>
+            </div>
+        </div>
+        <div id="orderList" class="mui-control-content">
+            <div class="mui-scroll-wrapper">
+                <div class="mui-scroll">
+
+                </div>
+            </div>
+        </div>
+        <div id="likeList" class="mui-control-content">
+            <div class="mui-scroll-wrapper">
+                <div class="mui-scroll">
+                </div>
+            </div>
+
+        </div>
+        <div id="evaluateList" class="mui-control-content">
+            <div id="scroll4" class="mui-scroll-wrapper">
+                <div class="mui-scroll">
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+</div>
+
+<script>
+    var jobNo;
+    mui.init();
+    mui.ready(function () {
+        initScrollBox();
+        load();
+    })
+    function initScrollBox(){
+        var h = document.documentElement.clientHeight - document.getElementById("segmentedControl").clientHeight;
+        if (!is_weixin()) {
+            h -= document.querySelector("header").clientHeight;
+        }
+        mui(".mui-control-content").each(function () {
+            this.style.height = h + "px";
+        })
+    }
+    function load() {
+        mui.ajax({
+            url: "/me",
+            type: "post",
+            success: function (data) {
+                if (data.message) {
+                    return mui.alert(data.message, "错误", "确定", function () {
+                        window.history.go(-1);
+                    });
+                }
+                if (!data.jobNo) {
+                    mui.prompt('', '请输入8位数字', '请输入您的工号', ['确定', '取消'], function (e) {
+                        if (e.index == 0 && /^[0-9]{8}$/.test(e.value)) {
+                            jobNo = e.value;
+                            login();
+                        } else {
+                            mui.alert("请输入8位数字的工号!", "输入错误", "确定", null, 'div');
+                        }
+                    }, 'div')
+                } else {
+                    document.querySelector("#order .mui-scroll").innerHTML = (juicer(document.getElementById("orderTemp").innerHTML, data));
+                    document.querySelector("#orderList .mui-scroll").innerHTML = (juicer(document.getElementById("orderListTemp").innerHTML, data));
+                    document.querySelector("#likeList .mui-scroll").innerHTML = (juicer(document.getElementById("likeListTemp").innerHTML, data));
+                    document.querySelector("#evaluateList .mui-scroll").innerHTML = (juicer(document.getElementById("evaluateListTemp").innerHTML, data));
+                    mui('.mui-scroll-wrapper').scroll({
+                        indicators: true //是否显示滚动条
+                    });
+                    mui("#evaluateList .mui-table-cell").each(function () {
+                        var level = parseInt(this.querySelector(".level").getAttribute("level"), 10);
+                        var eles = this.querySelectorAll(".mui-icon.mui-icon-star-filled");
+                        for (var i = 0; i < eles.length; i++) {
+                            if (i < level) {
+                                eles[i].classList.add("mui-active");
+                            }
+                        }
+                    })
+
+                }
+            }
+        })
+    }
+    function login() {
+        mui.ajax({
+            url: "/me/login",
+            type: "post",
+            data: {"jobNo": jobNo},
+            success: function (data) {
+                if (data.message) {
+                    return mui.alert(data.message, "错误", "确定", function () {
+                        window.history.go(-1);
+                    });
+                }
+                load();
+            }
+        })
+    }
+    mui('#likeList').on('tap', '.mui-btn.mui-btn-del', function (event) {
+        var elem = this;
+        var li = elem.parentNode.parentNode;
+        mui.ajax({
+            url: "/prodect/cancelLike",
+            type: "post",
+            data: {"jobNo": jobNo, "prodectId": li.dataset.id},
+            success: function (data) {
+                if (data.message) {
+                    return mui.alert(data.message, "错误", "确定", function () {
+                        mui.swipeoutClose(li);
+                    });
+                } else {
+                    li.parentNode.removeChild(li);
+                }
+            }
+        })
+    });
+    mui('#likeList').on('tap', 'h4', function (event) {
+        window.location = "prodect.html?id=" + this.dataset.id;
+    });
+    mui('#likeList').on('tap', 'img', function (event) {
+        window.location = "prodect.html?id=" + this.dataset.id;
+    });
+
+    mui('#order').on('tap', '.mui-btn', function (event) {
+        var li=this.parentNode.parentNode.parentNode;
+        mui.confirm('您确定取消该订单吗？', '提示', [ '取消','确定'], function (e) {
+            if (e.index == 1) {
+                mui.ajax({
+                    url: "/order/cancalOrder",
+                    type: "post",
+                    data: {"id": li.dataset.id},
+                    success: function (data) {
+                        if (data.message) {
+                            return mui.alert(data.message, "错误", "确定");
+                        } else {
+                            li.parentNode.removeChild(li);
+                        }
+                    }
+                })
+            }
+        }, 'div')
+    });
+
+    mui('#orderList').on('tap', '.mui-icon.mui-icon-trash', function (event) {
+        var li=this.parentNode.parentNode.parentNode;
+        mui.confirm('您确定删除该订单吗？', '提示', ['取消','确定' ], function (e) {
+            if (e.index == 1) {
+                mui.ajax({
+                    url: "/order/delOrder",
+                    type: "post",
+                    data: {"id": li.dataset.id},
+                    success: function (data) {
+                        if (data.message) {
+                            return mui.alert(data.message, "错误", "确定");
+                        } else {
+                            li.parentNode.removeChild(li);
+                        }
+                    }
+                })
+            }
+        }, 'div')
+    });
+
+    mui("#order").on("tap",".imgbox",function(){
+        var li=this.parentNode.parentNode.parentNode;
+        window.location="orderInfo.html?id="+li.dataset.id;
+    })
+    mui("#orderList").on("tap",".imgbox",function(){
+        var li=this.parentNode.parentNode.parentNode;
+        window.location="orderInfo.html?id="+li.dataset.id;
+    })
+</script>
+<script type="text/template" id="orderTemp">
+    <ul class="mui-table-view">
+        {@each orders as order}
+        {@if order.status==0}
+        <li class="mui-table-view-cell" data-id="${order._id}">
+            <div class="mui-table">
+                <div class="mui-table-cell">
+                    <button type="button" class="mui-pull-right mui-btn mui-btn-danger">
+                        取消订单
+                    </button>
+                    <h5 class="mui-pull-right" style="margin-right: 1rem;padding-top:0.2rem">等待发货</h5>
+                    <h5>${order.createTimeCN}</h5>
+                    <h5>${order.logistical==0?"自取":"送货-"+order.addess.name}</h5>
+
+                    <div class="imgbox">
+                        {@if order.prodectList.length>1}
+                        <nobr>
+                            {@each order.prodectList as prod}
+                            <img src="${prod.prodectId.img[0]}"/>
+                            {@/each}
+                        </nobr>
+                        {@else}
+                        <img class="mui-pull-left" src="${order.prodectList[0].prodectId.img[0]}"/>
+                        ${order.prodectList[0].prodectId.prodectName}
+                        {@/if}
+                    </div>
+                    <div class="mui-pull-right">
+                        <h5>共${order.prodectList.length}件商品 总价￥${order.money.toFixed(2)}</h5>
+                    </div>
+                </div>
+
+            </div>
+        </li>
+        {@/if}
+        {@/each}
+    </ul>
+</script>
+<script type="text/template" id="orderListTemp">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+        {@each orders as order}
+        {@if order.status!=0}
+        <li class="mui-table-view-cell" data-id="${order._id}">
+            <div class="mui-table">
+                <div class="mui-table-cell">
+                    <span class="mui-pull-right mui-icon mui-icon-trash"></span>
+                    <h5 class="mui-pull-right" style="margin-right: 1rem;padding-top:0.1rem">
+                        ${order.status==1?"已发货":order.status==2?"已评价":order.status==-1?"已取消":"已删除"}</h5>
+                    <h5>${order.createTimeCN}</h5>
+                    <h5>${order.logistical==0?"自取":"送货-"+order.addess.name}</h5>
+                    <div class="imgbox">
+                        {@if order.prodectList.length>1}
+                        <nobr>
+                            {@each order.prodectList as prod}
+                            <img src="${prod.prodectId.img[0]}"/>
+                            {@/each}
+                        </nobr>
+                        {@else}
+                        <img class="mui-pull-left" src="${order.prodectList[0].prodectId.img[0]}"/>
+                        ${order.prodectList[0].prodectId.prodectName}
+                        {@/if}
+                    </div>
+                    <div class="mui-pull-right" style="margin-left: 1rem">
+                        <h5>共${order.prodectList.length}件商品 总价￥${order.money.toFixed(2)}</h5>
+                    </div>
+                </div>
+
+            </div>
+        </li>
+        {@/if}
+        {@/each}
+    </ul>
+</script>
+<script type="text/template" id="likeListTemp">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+        {@each likes as prodect}
+        <li class="mui-table-view-cell mui-media" data-id="${prodect._id}">
+            <div class="mui-slider-right mui-disabled">
+                <a class="mui-btn mui-btn-del">取消收藏</a>
+            </div>
+            <div class="mui-table mui-slider-handle">
+                <div class="mui-table-cell mui-col-xs-12">
+                    <img class="mui-media-object mui-pull-left" src="${prodect.img[0]}" data-id="${prodect._id}">
+                    <div class="mui-media-body">
+                        <h4 data-id="${prodect._id}">${prodect.prodectName}</h4>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {@/each}
+    </ul>
+</script>
+
+<script type="text/template" id="evaluateListTemp">
+    <ul class="mui-table-view mui-table-view-striped mui-table-view-condensed">
+        {@if evaluates.length>0}
+        {@each evaluates as e}
+        <li class="mui-table-view-cell">
+            <div class="mui-table">
+                <div class="mui-table-cell mui-col-xs-12">
+                    <h5>时间：${e.createTimeCN}</h5>
+                    <h5 class="level" level="${e.level}">评分:
+                        <span class="mui-icon mui-icon-star-filled"></span>
+                        <span class="mui-icon mui-icon-star-filled"></span>
+                        <span class="mui-icon mui-icon-star-filled"></span>
+                        <span class="mui-icon mui-icon-star-filled"></span>
+                        <span class="mui-icon mui-icon-star-filled"></span>
+                    </h5>
+                    <h5>商品：<a href="prodect.html?id=${e.prodectId._id}">${e.prodectId.prodectName}</a></h5>
+                    <p class="mui-h6 mui-ellipsis">评论： ${e.content}</p>
+                </div>
+                <a style="position: absolute;right: 0.5rem;font-size: 0.8rem" href="orderInfo.html?id=${e.orderId}">查看订单</a>
+            </div>
+        </li>
+        {@/each}
+        {@else}
+        <li class="mui-table-view-cell">
+            <div class="mui-table">
+                <div class="mui-table-cell mui-col-xs-10">
+                    <h3>您还没有过任何评论</h3>
+                </div>
+            </div>
+        </li>
+        {@/if}
+    </ul>
+</script>
+</body>
+
+</html>

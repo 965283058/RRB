@@ -46,6 +46,7 @@ var OrderSchema = new Schema({
         prodectId: {type: Schema.Types.ObjectId, ref: 'Prodect'},
         price: Number,
         count: Number,
+        evaluateId:{type: Schema.Types.ObjectId, ref: 'Evaluate'}
     }],
     money: Number,
     createTime: {type: Number, default: Date.now()},

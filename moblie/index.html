@@ -7,9 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-
     <link rel="stylesheet" href="css/mui.min.css">
-
+    <link rel="stylesheet" href="css/rrb.css">
+    <link rel="stylesheet" href="css/mui.picker.css">
+    <script src="js/mui.min.js"></script>
+    <script src="js/juicer-min.js"></script>
+    <script src="js/common.js"></script>
     <style>
         html,
         body {
@@ -55,10 +58,6 @@
         }
 
         .mui-pull-top-tips .mui-pull-loading {
-            /*-webkit-backface-visibility: hidden;
-            -webkit-transition-duration: 400ms;
-            transition-duration: 400ms;*/
-
             margin: 0;
         }
 
@@ -66,11 +65,6 @@
         .mui-pull-top-wrapper .mui-spinner {
             margin-top: 7px;
         }
-
-        .mui-pull-top-wrapper .mui-icon.mui-reverse {
-            /*-webkit-transform: rotate(180deg) translateZ(0);*/
-        }
-
         .mui-pull-bottom-tips {
             text-align: center;
             background-color: #efeff4;
@@ -96,12 +90,16 @@
         .mui-slider-indicator.mui-segmented-control {
             background-color: #efeff4;
         }
-
-        .title {
-            margin: 20px 15px 10px;
-            color: #6d6d72;
-            font-size: 15px;
+ 
+        .price{
+            color: red;
         }
+        .mui-slider-group .mui-table-view .mui-media-object {
+            line-height: 5rem;
+            max-width: 5rem;
+            height: 5rem;
+        }
+
     </style>
 </head>
 
@@ -115,11 +113,14 @@
         <div id="sliderSegmentedControl"
              class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
             <div class="mui-scroll">
+                <a class="mui-control-item mui-active" href="#item1mobile">
+                    加载中...
+                </a>
             </div>
         </div>
         <div class="mui-slider-group">
             <div id="item1mobile" class="mui-slider-item mui-control-content mui-active">
-                <div id="scroll1" class="mui-scroll-wrapper">
+                <div class="mui-scroll-wrapper">
                     <div class="mui-scroll">
                         <ul class="mui-table-view">
 
@@ -129,25 +130,28 @@
             </div>
         </div>
     </div>
+
+    <div id="bottomPopover" class="mui-popover mui-popover-bottom" style="width: 12rem">
+        <div class="mui-popover-arrow"></div>
+        <ul class="mui-table-view">
+            <li class="mui-table-view-cell"><a href="index.html">首页</a>
+            </li>
+            <li class="mui-table-view-cell"><a href="me.html">个人中心</a>
+            </li>
+            <li class="mui-table-view-cell"><a href="cart.html">购物车</a>
+            </li>
+        </ul>
+    </div>
+    <a href="#bottomPopover" class="menu" id="cart">
+        <span class="mui-icon mui-icon-bars">菜单</span>
+    </a>
 </div>
-<script src="js/mui.min.js"></script>
-<script src="js/mui.pullToRefresh.js"></script>
-<script src="js/mui.pullToRefresh.material.js"></script>
-<script src="js/juicer-min.js"></script>
-<script src="js/common.js"></script>
+
 <script>
-    mui.init();
     (function ($) {
-        if(is_weixin()){
-            $("#slider")[0].style.top="0px";
+        if (is_weixin()) {
+            document.querySelector("#slider").style.top = "0px";
         }
-        //阻尼系数
-        var deceleration = mui.os.ios ? 0.003 : 0.0009;
-        $('.mui-scroll-wrapper').scroll({
-            bounce: false,
-            indicators: true, //是否显示滚动条
-            deceleration: deceleration
-        });
         $.ready(function () {
             $.ajax({
                 type: "post",
@@ -157,69 +161,57 @@
                     if (data.errMsg) {
                         return alert(data.errMsg);
                     }
-                    var html = '';
-                    var prodentHtml = '';
-                    for (var i = 0; i < data.categorys.length; i++) {
-                        var content = juicer(document.getElementById("prodectList").innerHTML, data.categorys[i])
-                        if (i != 0) {
-                            prodentHtml += '<div id="category_' + data.categorys[i]._id + '" class="mui-slider-item mui-control-content mui-active"><div id="scroll_' + data.categorys[i]._id + '" class="mui-scroll-wrapper"><div class="mui-scroll"><ul class="mui-table-view"> '+content+'</ul></div></div></div>';
-                            html += '<a class="mui-control-item" href="#category_' + data.categorys[i]._id + '">' + data.categorys[i].categoryName + '</a>';
-                        } else {
-                            prodentHtml += '<div id="category_' + data.categorys[i]._id + '" class="mui-slider-item mui-control-content"><div id="scroll_' + data.categorys[i]._id + '" class="mui-scroll-wrapper"><div class="mui-scroll"><ul class="mui-table-view"> '+content+'</ul></div></div></div>';
-                            html += '<a class="mui-control-item mui-active" href="#category_' + data.categorys[i]._id + '">' + data.categorys[i].categoryName + '</a>';
-                        }
-                    }
-                    $(".mui-slider-group")[0].innerHTML = prodentHtml;
-                    $("#sliderSegmentedControl .mui-scroll")[0].innerHTML = html;
-                    /*  $.each(document.querySelectorAll('.mui-slider-group .mui-scroll'), function (index, pullRefreshEl) {
-                     $(pullRefreshEl).pullToRefresh({
-                     down: {
-                     callback: function () {
-                     var self = this;
-                     setTimeout(function () {
-                     var ul = self.element.querySelector('.mui-table-view');
-                     ul.insertBefore(createFragment(ul, index, 10, true), ul.firstChild);
-                     self.endPullDownToRefresh();
-                     }, 1000);
-                     }
-                     },
-                     up: {
-                     callback: function () {
-                     var self = this;
-                     setTimeout(function () {
-                     var ul = self.element.querySelector('.mui-table-view');
-                     ul.appendChild(createFragment(ul, index, 5));
-                     self.endPullUpToRefresh();
-                     }, 1000);
-                     }
-                     }
-                     });
-                     });*/
+                    document.querySelector("#sliderSegmentedControl .mui-scroll").innerHTML = juicer(document.getElementById("categoryTemp").innerHTML, data);
+                    document.querySelector(".mui-slider-group").innerHTML = juicer(document.getElementById("prodectTemp").innerHTML, data);
+                    mui.init();
+                    var deceleration = mui.os.ios ? 0.003 : 0.0009;
+                    $('.mui-scroll-wrapper').scroll({
+                        bounce: false,
+                        indicators: true, //是否显示滚动条
+                        deceleration: deceleration
+                    });
+
                 }
             });
         });
     })(mui);
+
 </script>
-
-<script type="text/template" id="prodectList">
-
-    {@if prodects.length>0}
-        {@each prodects as prodect}
-        <li class="mui-table-view-cell mui-media">
-            <a href="prodect.html?id=${prodect._id}">
-                <img class="mui-media-object mui-pull-left" src="${prodect.img[0]}">
-                <div class="mui-media-body">
-                    ${prodect.prodectName}
-                    <p class='mui-ellipsis'>${prodect.remark}</p>
-                </div>
-            </a>
-        </li>
-        {@/each}
-    {@else}
-        <li class="mui-table-view-cell mui-media">
-           暂无商品
-        </li>
-    {@/if}
+<script type="text/template" id="categoryTemp">
+    {@each categorys as category,index}
+    <a class="mui-control-item ${index==0?' mui-active':''}"
+       href="#category_${category._id}">${category.categoryName}</a>
+    {@/each}
+</script>
+<script type="text/template" id="prodectTemp">
+    {@each categorys as category,index}
+    <div id="category_${category._id}" class="mui-slider-item mui-control-content${index==0?' mui-active':''}">
+        <div class="mui-scroll-wrapper">
+            <div class="mui-scroll">
+                <ul class="mui-table-view">
+                    {@if category.prodects.length>0}
+                    {@each category.prodects as prodect}
+                    <li class="mui-table-view-cell mui-media">
+                        <a href="prodect.html?id=${prodect._id}">
+                            <img class="mui-media-object mui-pull-left" src="${prodect.img[0]}">
+                            <div class="mui-media-body">
+                                <h5>${prodect.prodectName}</h5>
+                                <h5 class="price">￥${prodect.price.toFixed(2)}</h5>
+                                <p class='mui-ellipsis'>${prodect.remark}</p>
+                            </div>
+                        </a>
+                    </li>
+                    {@/each}
+                    {@else}
+                    <li class="mui-table-view-cell mui-media">
+                        暂无此类商品
+                    </li>
+                    {@/if}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {@/each}
 </script>
 </body>
 

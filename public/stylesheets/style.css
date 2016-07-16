@@ -76,7 +76,7 @@ body,button,input,select,textarea{font:12px/1.5 tahoma,arial,\5b8b\4f53;}
 .xianqing_nr { width:750px; padding:15px; line-height:150% }
 .xianqing_nr img{vertical-align:bottom; display:block; margin:0 auto; padding:10px;width: 720px}
 .suxing { width:760px; padding:0 10px 10px; border:1px solid #eeeeee; background:#f9f9f9; float:left; margin-top:4px; }
-.suxing li { float:left; width:253px; margin-top:10px; }
+.suxing li { float:left;  margin-top:10px; }
 .xqpiclist{line-height:0;font-size:0;}
 .good_xg .dpbt { background:#fafafa; height:30px; line-height:30px; border-bottom:1px solid #efefef; padding-left:25px; font-size:15px; color:#bc0000; font-weight:bold; }
 .w188 { width:212px; border:1px solid #ccc; overflow:hidden;}

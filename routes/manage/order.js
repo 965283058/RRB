@@ -92,10 +92,10 @@ router.post('/send', function (req, res, next) {
                                 for (var j = 0; j < prodects.length; j++) {
                                     if (prods[i]._id.toString() == prodects[j].prodectId.toString()) {
                                         if (prods[i].stock < prodects[j].count) {
-                                            res.end(JSON.stringify({
+                                            res.json({
                                                 "status": 34,
                                                 "message": prods[i].prodectName + "库存不足，无法发货!"
-                                            }));
+                                            });
                                             return;
                                         }
                                         break;
