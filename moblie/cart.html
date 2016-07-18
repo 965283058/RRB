@@ -132,6 +132,19 @@
             position: absolute;
             bottom: 0.9rem;
             right: 0.4rem;
+            width: 4rem;
+            padding: 0;
+        }
+        .prodectInfo .mui-media-body .count .mui-input-numbox{
+            width: 1.9rem !important;
+            padding: 0;
+            margin: 0;
+            position: absolute;
+            left: 1rem;
+        }
+        .prodectInfo .mui-media-body .count .mui-btn{
+            width: 1rem;
+            margin: 0;
         }
 
     </style>
@@ -339,7 +352,7 @@
                         <div class="count mui-numbox" data-numbox-min='1'
                              data-numbox-max='${prodect.stock>20?20:prodect.stock}'>
                             <button class="mui-btn mui-btn-numbox-minus" type="button">-</button>
-                            <input data-id="${prodect._id}" class="mui-input-numbox" name="count" type="number"
+                            <input data-id="${prodect._id}" class="mui-input-numbox" name="count" type="number" readonly
                                    value="${prodect.count}"/>
                             <button class="mui-btn mui-btn-numbox-plus" type="button">+</button>
                         </div>

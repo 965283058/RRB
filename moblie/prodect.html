@@ -272,15 +272,17 @@
                 }
                 document.getElementById("evaluateList").innerHTML += (juicer(document.getElementById("evaluates").innerHTML, data));
 
-                mui(".mui-table-cell.mui-col-xs-10").each(function () {
-                    var level = parseInt(this.querySelector(".level").getAttribute("level"), 10);
-                    var eles = this.querySelectorAll(".mui-icon.mui-icon-star-filled");
-                    for (var i = 0; i < eles.length; i++) {
-                        if (i < level) {
-                            eles[i].classList.add("mui-active");
+                if(data.evaluates&&data.evaluates.length>0){
+                    mui(".mui-table-cell.mui-col-xs-10").each(function () {
+                        var level = parseInt(this.querySelector(".level").getAttribute("level"), 10);
+                        var eles = this.querySelectorAll(".mui-icon.mui-icon-star-filled");
+                        for (var i = 0; i < eles.length; i++) {
+                            if (i < level) {
+                                eles[i].classList.add("mui-active");
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         });
         document.getElementById("like").addEventListener("tap", function () {

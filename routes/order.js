@@ -420,7 +420,7 @@ router.post("/evaluate", function (req, res, next) {
         jobNo: jobNo,
         level: leveal,
         content: content,
-        status: 0,   //0禁用 1正常
+        status: 1,   //0禁用 1正常
     })
     evaluate.save(function (error) {
         if (!error) {
