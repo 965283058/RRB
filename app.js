@@ -19,7 +19,6 @@ app.use(function (req, res, next) {
                 process.exit(1);
             }, 30000);
             killTimer.unref();
-            server.close();
             res.status(500);
             res.render('error', {
                 message: "服务器错误，/(ㄒoㄒ)/~~",
@@ -42,7 +41,7 @@ process.on('uncaughtException', function (err) {
 
 
 app.use(session({
-    secret: 'hubwiz app', //secret的值建议使用随机字符串
+    secret: 'RRB app', //secret的值建议使用随机字符串
     cookie: {maxAge: 60 * 1000 * 30} // 过期时间（毫秒）
 }));
 

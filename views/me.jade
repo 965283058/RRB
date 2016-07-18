@@ -134,10 +134,10 @@ html
                     $.messager.confirm("提示","您确定取消该订单吗？",function(r){
                         if(r){
                             $.post("/order/cancalOrder",{"id":id},function(data){
-                                if(!data.errMsg){
+                                if(!data.message){
                                     window.location.reload();
                                 }else{
-                                    $.messager.alert("错误",data.errMsg,"error");
+                                    $.messager.alert("错误",data.message,"error");
                                 }
                             })
                         }

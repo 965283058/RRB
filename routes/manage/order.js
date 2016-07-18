@@ -81,6 +81,38 @@ router.post('/send', function (req, res, next) {
     db.Order.findOne({"_id": id}, function (err, order) {
             if (!err && order) {
                 if (order.status == 0) {
+                    order.status = 1;
+                    order.sendTime = Date.now();
+                    order.sender = req.session.admin._id;
+                    order.save(function (err, data) {
+                        if(!err){
+                            res.json({});
+                        }else{
+                            res.json({
+                                "status": 32,
+                                "message": err.errmsg || "订单发货失败！"
+                            });
+                        }
+                    })
+                }
+                else if (order.status > 0) {
+                    res.json({"status": 33, "message": "该订单已发货"});
+                }
+                else {
+                    res.json({"status": 34, "message": "该订单已取消"});
+                }
+            } else {
+                res.json({"status": 22, "message": err ? err.errmsg : "未找到该订单"});
+            }
+        }
+    )
+});
+/*
+router.post('/send', function (req, res, next) {
+    var id = req.body.id;
+    db.Order.findOne({"_id": id}, function (err, order) {
+            if (!err && order) {
+                if (order.status == 0) {
                     var prodects = order.prodectList;
                     var ids = [];
                     for (var i = 0; i < order.prodectList.length; i++) {
@@ -102,7 +134,6 @@ router.post('/send', function (req, res, next) {
                                     }
                                 }
                             }
-                            //var funcs = [];
                             for (var i = 0; i < prods.length; i++) {
                                 for (var j = 0; j < prodects.length; j++) {
                                     if (prods[i]._id.toString() == prodects[j].prodectId.toString()) {
@@ -149,7 +180,7 @@ router.post('/send', function (req, res, next) {
             }
         }
     )
-});
+});*/
 
 router.post('/getOne', function (req, res, next) {
     var id = req.body.id;

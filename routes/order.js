@@ -158,6 +158,24 @@ router.post("/submitOrder", function (req, res, next) {
                     }
                 }
             }
+            var target = 0;
+            for (var i = 0; i < prods.length; i++) {
+                target = prods[i].stock;
+                for (var j = 0; j < prodects.length; j++) {
+                    if (prods[i]._id.toString() == prodects[j].prodectId.toString()) {
+                        target = prods[i].stock - prodects[j].count;
+                        break;
+                    }
+                }
+                db.Prodect.update({_id: prods[i]._id}, {$set: {stock: target}}, function (err) {
+                    if (err) {
+                        return res.json({
+                            "status": 333,
+                            "message": err.message || "商品库存更新失败！"
+                        });
+                    }
+                });
+            }
             //开始创建订单
             var jobNO = req.body.jobNO;
             var name = req.body.name;
@@ -205,6 +223,85 @@ router.post("/submitOrder", function (req, res, next) {
         }
     })
 })
+/*
+router.post("/submitOrder", function (req, res, next) {
+    var id = req.body.id;
+    var prodects = req.session["prodect_" + id];
+    if (!prodects || prodects.length == 0) {
+        res.json({"errMsg": "未找到商品"});
+        return;
+    }
+    var ids = [];
+    for (var i = 0; i < prodects.length; i++) {
+        ids.push(prodects[i].prodectId);
+    }
+
+    db.Prodect.find({_id: {"$in": ids}}, function (err, prods) {
+        if (!err && prods.length > 0) {
+            for (var i = 0; i < prods.length; i++) {
+                for (var j = 0; j < prodects.length; j++) {
+                    if (prods[i]._id.toString() == prodects[j].prodectId.toString()) {
+                        if (prods[i].stock < prodects[j].count) {
+                            res.json({
+                                "errMsg": prods[i].prodectName + "库存不足，无法发货!"
+                            });
+                            return;
+                        }
+                        if (prods[i].status != 1) {
+                            res.json({"errMsg": prods[i].prodectName + "已下架!"});
+                            return;
+                        }
+                        break;
+                    }
+                }
+            }
+            //开始创建订单
+            var jobNO = req.body.jobNO;
+            var name = req.body.name;
+            var dept = req.body.dept;
+            //var type = req.body.type;
+            var logistical = req.body.logistical;
+            var addess = req.body.addess || null;
+            var remark = req.body.remark || '';
+            var order = new db.Order({
+                jobNo: jobNO,
+                name: name,
+                dept: dept,
+                //type: type,//0 送人 1自用
+                logistical: logistical, //物流方式
+                addess: addess,
+                createTime: Date.now(),
+                remark: remark,
+                status: 0
+            });
+            var total = 0;
+            var ps = [];
+            for (var k in prodects) {
+                ps.push({
+                    prodectId: prodects[k].prodectId,
+                    price: prodects[k].price,
+                    count: prodects[k].count
+                })
+                total += prodects[k].price * prodects[k].count;
+            }
+            order.prodectList = ps;
+            order.money = total;
+            order.save(function (saveErr) {
+                if (!saveErr) {
+                    req.session["jobNo"] = jobNO;
+                    req.session["prodect_" + id] = null;
+                    req.session["order_" + id] = null;
+                    res.json({});
+                }
+                else {
+                    res.json({"errMsg": "提交失败:" + saveErr.message});
+                }
+            })
+        } else {
+            res.json({"errMsg": err.message || "未查询到订单商品！"});
+        }
+    })
+})*/
 
 router.get("/delOrder/:id", function (req, res, next) {
     var id = req.params.id;
@@ -271,20 +368,37 @@ router.post("/cancalOrder", function (req, res, next) {
     db.Order.findOne({"_id": id}, function (err, order) {
         if (!err && order) {
             if (order.status != 0) {
-                req.json({"errMsg": err.message || "订单不可取消！"});
+                if (order.status > 0) {
+                    res.json({"message": "订单已发货了,不可取消！"});
+                } else if (order.status == -1) {
+                    res.json({"message": "订单已经取消过了！"});
+                } else {
+                    res.json({"message": "该订单已失效！"});
+                }
+                return;
             } else {
+                for (var j = 0; j < order.prodectList.length; j++) {
+                    db.Prodect.update({_id: order.prodectList[j].prodectId}, {"$inc": {stock: order.prodectList[j].count}}, function (prodectErr) {
+                        if (prodectErr) {
+                            return res.json({
+                                "status": 333,
+                                "message": "商品库存更新失败:" + prodectErr.message
+                            });
+                        }
+                    });
+                }
                 order.status = -1;
                 order.save(function (error) {
                     if (!error) {
                         res.json({});
                     } else {
                         console.info(error)
-                        res.json({"errMsg": error.message});
+                        res.json({"message": error.message});
                     }
                 })
             }
         } else {
-            res.json({"errMsg": err.message || "未找到该订单！"});
+            res.json({"message": err ? err.message : "未找到该订单！"});
         }
     })
 })
@@ -311,7 +425,7 @@ router.post("/evaluate", function (req, res, next) {
     evaluate.save(function (error) {
         if (!error) {
             db.Order.findOne({"_id": orderId}, function (orderErr, order) {
-                if(!orderErr&&order){
+                if (!orderErr && order) {
                     for (var i = 0; i < order.prodectList.length; i++) {
                         if (order.prodectList[i].prodectId == prodectId) {
                             order.prodectList[i].evaluateId = evaluate._id;
@@ -329,8 +443,8 @@ router.post("/evaluate", function (req, res, next) {
                         order.status = 2;
                     }
                     order.save();
-                }else{
-                    console.info(orderErr||"没找到订单")
+                } else {
+                    console.info(orderErr || "没找到订单")
                 }
             })
             res.json({});
