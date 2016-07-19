@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="../public/javascripts/themes/bootstrap/easyui.css">
     <link rel="stylesheet" type="text/css" href="../public/javascripts/themes/icon.css">
-
     <link rel="stylesheet" type="text/css" href="css/layout.css">
+    <link rel="stylesheet" type="text/css" href="css/hk-style.css">
     <script type="text/javascript" src="../public/javascripts/jquery.min.js"></script>
     <script type="text/javascript" src="../public/javascripts/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="js/extend.js"></script>
@@ -18,14 +18,15 @@
     }
 </style>
 <body class="easyui-layout">
-<!--<div data-options="region:'north',title:'North Title',split:true, noheader:true" class="header gradualChange">
-    <p class="h2  indexTitle">&nbsp;</p>
+<div data-options="region:'north',title:'North Title',split:true, noheader:true" class="header gradualChange">
+    <h1 class="title">人人币系统管理后台</h1>
+
     <p class="indexAdmin">
         <span>欢迎你，<i id="adminerName"></i></span>
-        <span><a href="resetPassword.html">修改密码</a></span>
+        <span><a href="javascript:;" onclick="changePwd()">修改密码</a></span>
         <span><a href="javascript:;" onclick={loginoutSure();}>退出</a></span>
     </p>
-</div>-->
+</div>
 
 <div data-options="region:'west',title:'菜单栏',split:true" class="left">
     <ul id="navTree" class="navStyle"></ul>
@@ -37,6 +38,7 @@
         <div title="首页" style="padding: 20px;height: 100%;">
             <div style="margin-top: 20px;">
                 <p>欢迎使用人人贷黑卡系统</p>
+
                 <p>&nbsp;</p>
             </div>
         </div>
@@ -56,8 +58,81 @@
                 console.log('登出异常');
             }
         });
-//        window.location.href = 'login.html'
     }
+    $.ajax({
+        url: "/manage/user/getCurrUser",
+        type: "post",
+        succ: function (res) {
+            $("#adminerName").html(res.user.name)
+        }
+    });
+    function changePwd() {
+        $.createOnlyDiv('newUser-dialog');
+        var content = $("#newUser").html();
+        $("#newUser-dialog").dialog({
+            title: " 【修改密码】",
+            width: 320,
+            height: 220,
+            top: 200,
+            closed: false,
+            closable: false,
+            cache: false,
+            content: content,
+            modal: true,
+            buttons: [{
+                text: '修改',
+                iconCls: 'icon-save',
+                handler: function () {
+                    var userForm = $("#newUser-dialog").find("form[name=userForm]");
+                    if (userForm.form("validate")) {
+                        var params=userForm.serializeJson();
+                        $.ajax({
+                            url: "/manage/user/changePwd",
+                            type: "post",
+                            data: params,
+                            succ: function (res) {
+                                $.messager.alert("提示", "修改成功!");
+                                $("#newUser-dialog").dialog("destroy");
+                            }
+                        })
+                    }
+                }
+            }, {
+                text: '取消',
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    $("#newUser-dialog").dialog("destroy");
+                }
+            }],
+            onOpen: function () {
+                $("#newUser-dialog").find("input[name=oldPwd]").validatebox({
+                    required: true,
+                    validateOnCreate: false,
+                    missingMessage: "请输入当前密码!",
+                });
+                $("#newUser-dialog").find("input[name=pwd]").validatebox({
+                    required: true,
+                    validateOnCreate: false,
+                    missingMessage: "请输入新密码！",
+                });
+                $("#newUser-dialog").find("input[name=pwdConfirm]").validatebox({
+                    required: true,
+                    validateOnCreate: false,
+                    missingMessage: "请再次输入新密码",
+                    validType: "equals['#pwd']"
+                });
+            }
+        })
+    }
+
+    $.extend($.fn.validatebox.defaults.rules, {
+        equals: {
+            validator: function (value, param) {
+                return value == $(param[0]).val();
+            },
+            message: '两次密码输入不一致！'
+        }
+    });
 
     function loginoutSure() {
         $.messager.confirm('提示:', '你确认退出人人币管理系统吗?', function (event) {
@@ -72,4 +147,27 @@
         var tab = which === undefined ? tabs.tabs('getSelected') : tabs.tabs('getTab', which);
         tabs.tabs('close', tabs.tabs('getTabIndex', tab));
     }
+</script>
+<script id="newUser" type="text/template">
+    <div class="dialogViewInfo">
+        <form name="userForm">
+            <table class="inputTable" border="0">
+                <tr>
+                    <td>当前密码:</td>
+                    <td><input type="password" class="input_style" name="oldPwd"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>新密码:</td>
+                    <td><input type="password" class="input_style" id="pwd" name="pwd"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>确认新密码:</td>
+                    <td><input type="password" class="input_style" name="pwdConfirm"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
 </script>

@@ -20,7 +20,7 @@ router.use('/login', function (req, res, next) {
                         res.end(JSON.stringify({"status": 2, "message": "账号锁定中"}));
                         return;
                     }
-                    user.lastLoginTime =Date.now();
+                    user.lastLoginTime = Date.now();
                     user.errCount = 0;
                     req.session.admin = user;
                     user.save();
@@ -231,4 +231,36 @@ router.post('/changeStatus', function (req, res, next) {
 
 
 });
+
+router.post('/changePwd', function (req, res, next) {
+    var oldPwd = req.body.oldPwd;
+    var hasher = crypto.createHash("md5");
+    hasher.update(oldPwd);
+    var oldPwd_md5 = hasher.digest('hex');//pwd_md5为加密之后的数据
+    if (oldPwd_md5 != req.session.admin.pwd) {
+        return res.json({"status": 99, "message": "原始密码输入错误！"});
+    }
+
+    var id = req.session.admin._id;
+    var hasher1 = crypto.createHash("md5");
+    var pwd = req.body.pwd;
+    hasher1.update(pwd);
+    var pwd_md5 = hasher1.digest('hex');//pwd_md5为加密之后的数据
+    db.Admin.update({"_id": id}, {"$set": {"pwd": pwd_md5}}, function (err) {
+        if (!err) {
+            req.session.admin.pwd = pwd_md5;
+            res.json({});
+        }
+        else {
+            res.json({"status": 100, "message": err.message});
+        }
+    })
+
+
+});
+
+router.post('/getCurrUser', function (req, res, next) {
+    res.json({"user": req.session.admin});
+});
+
 module.exports = router;
