@@ -3,9 +3,11 @@ var router = express.Router();
 var fs=require("fs");
 var db = require("../db/Schema");
 var Schema = require("mongoose").Schema;
+var path=require("path")
 
 router.get("/",function(req, res, next){
-    fs.readFile("../views/cart.html", "binary", function(err, file) {
+    var htmlPath=path.join(__dirname,"../views/cart.html")
+    fs.readFile(htmlPath, "binary", function(err, file) {
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.write(file, "binary");
         res.end();

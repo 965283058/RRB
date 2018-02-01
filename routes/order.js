@@ -82,6 +82,8 @@ function getOrder(id, isMoblie, req, res) {
             });
         },
         selfAddess: function (cb) {
+            cb(null,"请至科技园人力资源部高鹤处领取~")
+            return
             fs.readFile("../uploads/selfAddess.txt", 'utf-8', function (err, data) {
                 if (!err) {
                     cb(null, data);
@@ -112,6 +114,7 @@ function getOrder(id, isMoblie, req, res) {
             }
 
         } else {
+            console.info(err)
             if (isMoblie) {
                 res.json({
                     message: err.message,
