@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>收货地址管理</title>
+    <title>系统参数配置管理</title>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta http-equiv="Cache-control" content="no-cache">
     <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
@@ -14,16 +13,7 @@
     <script type="text/javascript" src="../../public/javascripts/jquery.easyui.min.js"></script>
     <script type="text/javascript" src="../../public/javascripts/easyui-lang-zh_CN.js"></script>
     <script type="text/javascript" src="../js/extend.js"></script>
-
     <style>
-        .dialog-button {
-            text-align: center;
-        }
-
-        .dialog-button a {
-            margin: auto 20px;
-        }
-
         .categoryPanel {
             padding: 20px
         }
@@ -38,7 +28,6 @@
 <body>
 <table id="dg"></table>
 
-
 <script>
 
     $(function () {
@@ -47,55 +36,41 @@
             loadMsg: '加载中...',
             singleSelect: true,
             remoteSort: true,
-            url: '/manage/addess/list',
+            url: '/manage/config/list',
             columns: [[
-                {
-                    field: 'cbo',
-                    checkbox: true
-                },
-                {
-                    field: 'number',
-                    title: '序号',
-                    width: '4%',
-                    align: 'center'
-                },
-                {
-                    field: 'id',
-                    title: 'ID',
-                    hidden: true
-                },
-                {
-                    field: 'name',
-                    title: '类别名称',
-                    width: '60%',
-                    align: 'center',
-                    sortable: true
-                },
-                {
-                    field: 'status',
-                    title: '状态',
-                    width: '12%',
-                    align: 'center',
-                    sortable: true,
-                    formatter: function (value, row, index) {
-                        return value ? "启用" : "禁用";
-                    },
-                },
                 {
                     field: 'cz',
                     title: '操作',
-                    width: '14%',
+                    width: '7%',
                     align: 'center',
                     formatter: function (value, row, index) {
-                        return '<a href="#" class="gridCellBtn" onclick="changStatus(\'' + row._id + '\',\'' + row.status + '\')">' + (   row.status ? "禁用" : "启用") + '<a>';
+                        return '<a href="#" class="gridCellBtn" onclick="edit(\'' + row.key + '\',\'' + row.value + '\',\'' + row.display + '\')">编辑<a>';
                     }
+                },
+                {
+                    field: 'key',
+                    title: '键',
+                    hidden: true
+                },
+                {
+                    field: 'display',
+                    title: '键',
+                    width: '10%',
+                    halign: 'center'
+                },
+                {
+                    field: 'value',
+                    title: '值',
+                    width: '84%',
+                    align: 'center',
+                    sortable: true
                 }
             ]],
             emptyMessage: "没有符合条件的记录",
             toolbar: [{
                 iconCls: 'hk-icon-edit',
                 handler: add,
-                text: "添加收货地址",
+                text: "添加参数",
             }]
         });
 
@@ -103,9 +78,9 @@
         function add() {
             $.createOnlyDiv("dialog-add");
             $("#dialog-add").dialog({
-                title: '【增加收货地址】',
-                width: 380,
-                height: 220,
+                title: '【配置参数】',
+                width: 340,
+                height: 200,
                 closed: false,
                 closable: true,
                 content: $("#categoryTemplate").html(),
@@ -117,16 +92,12 @@
                         var addessForm = $("#dialog-add").find("form[name=addessForm]");
                         if (addessForm.form("validate")) {
                             $.ajax({
-                                url: '/manage/addess/add',
+                                url: '/manage/config/add',
                                 type: "post",
                                 data: addessForm.serializeJson(),
                                 succ: function (data) {
                                     $("#dialog-add").dialog("destroy");
-                                    if (data.message) {
-                                        $.messager.alert("【消息通知】", "添加成功", "info");
-                                    } else {
-                                        $.messager.alert("【消息通知】", "操作成功!", "OK");
-                                    }
+                                    $.messager.alert("【消息通知】", "添加成功", "OK");
                                     $("#dg").datagrid("reload");
                                 }
                             })
@@ -139,33 +110,63 @@
                     }
                 }],
                 onOpen: function () {
-                    var that = $(this);
-                    that.find("input[name=name]").validatebox({
+                    $(this).find("input[name=key]").validatebox({
                         required: true,
-                        missingMessage: "地址不可为空",
+                        missingMessage: "key不可为空",
                         validateOnCreate: false
                     })
-
-
+                    $(this).find("input[name=display]").validatebox({
+                        required: true,
+                        missingMessage: "显示名称不可为空",
+                        validateOnCreate: false
+                    })
                 }
             })
         }
 
 
     })
-    function changStatus(id, status) {
-        $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该地址吗？", function (r) {
-            if (r) {
-                $.ajax({
-                    url: "/manage/addess/changeStatus",
-                    type: "post",
-                    data: {"id": id},
-                    succ: function (res) {
-                        $.messager.alert("提示", (status == "0" ? "启用" : "禁用") + "成功", "info");
-                        $("#dg").datagrid("reload");
+    function edit(key, value, dispaly) {
+        $.createOnlyDiv("dialog-add");
+        $("#dialog-add").dialog({
+            title: dispaly,
+            width: 520,
+            height: 260,
+            closed: false,
+            closable: true,
+            content: '<textarea style="width:470px;height: 160px;margin: 6px auto;display: block">' + value + '</textarea>',
+            cache: false,
+            modal: true,
+            buttons: [{
+                text: '保存',
+                handler: function () {
+                    var value = $("#dialog-add textarea").val();
+                    if (key == "freight") {
+                        value = parseFloat(value);
+                        if (isNaN(value)) {
+                            return $.messager.alert("提示", "必须输入数字!", "error", function () {
+                                $("#dialog-add textarea").val('');
+                            })
+                        }
                     }
-                })
-            }
+
+                    $.ajax({
+                        url: '/manage/config/edit',
+                        type: "post",
+                        data: {"key": key, "value": value},
+                        succ: function (data) {
+                            $("#dialog-add").dialog("destroy");
+                            $.messager.alert("【消息通知】", "编辑成功", "OK");
+                            $("#dg").datagrid("reload");
+                        }
+                    })
+                }
+            }, {
+                text: '关闭',
+                handler: function () {
+                    $("#dialog-add").dialog("destroy")
+                }
+            }]
         })
     }
 </script>
@@ -174,13 +175,14 @@
         <form name="addessForm">
             <table class="inputTable" border="0">
                 <tr>
-                    <td class="text-right">地址:</td>
-                    <td><input type="text" name="name"/>
+                    <td class="text-right">key:</td>
+                    <td><input type="text" name="key"/>
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right">状态:</td>
-                    <td><label><input type="checkbox" checked="checked" value="1" name="status"/>是否启用</label>
+                    <td class="text-right">显示名称:</td>
+                    <td><input type="text" name="display"/>
+                        <input type="hidden" name="value" value=""/>
                     </td>
                 </tr>
             </table>
@@ -189,3 +191,4 @@
 </script>
 </body>
 </html>
+

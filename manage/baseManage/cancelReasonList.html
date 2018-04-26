@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>收货地址管理</title>
+    <title>取消原因管理</title>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <meta http-equiv="Cache-control" content="no-cache">
     <link rel="stylesheet" type="text/css" href="../../public/javascripts/themes/bootstrap/easyui.css">
@@ -16,13 +16,6 @@
     <script type="text/javascript" src="../js/extend.js"></script>
 
     <style>
-        .dialog-button {
-            text-align: center;
-        }
-
-        .dialog-button a {
-            margin: auto 20px;
-        }
 
         .categoryPanel {
             padding: 20px
@@ -47,12 +40,8 @@
             loadMsg: '加载中...',
             singleSelect: true,
             remoteSort: true,
-            url: '/manage/addess/list',
+            url: '/manage/cancelReason/list',
             columns: [[
-                {
-                    field: 'cbo',
-                    checkbox: true
-                },
                 {
                     field: 'number',
                     title: '序号',
@@ -60,42 +49,35 @@
                     align: 'center'
                 },
                 {
-                    field: 'id',
+                    field: '_id',
                     title: 'ID',
-                    hidden: true
+                    width: '20%',
+                    align: 'center',
+                    sortable: true
                 },
                 {
-                    field: 'name',
-                    title: '类别名称',
+                    field: 'reason',
+                    title: '原因',
                     width: '60%',
                     align: 'center',
                     sortable: true
                 },
                 {
-                    field: 'status',
-                    title: '状态',
+                    field: 'type',
+                    title: '类型',
                     width: '12%',
                     align: 'center',
                     sortable: true,
                     formatter: function (value, row, index) {
-                        return value ? "启用" : "禁用";
-                    },
-                },
-                {
-                    field: 'cz',
-                    title: '操作',
-                    width: '14%',
-                    align: 'center',
-                    formatter: function (value, row, index) {
-                        return '<a href="#" class="gridCellBtn" onclick="changStatus(\'' + row._id + '\',\'' + row.status + '\')">' + (   row.status ? "禁用" : "启用") + '<a>';
+                        return value ? "管理员使用" : "用户使用";
                     }
-                }
+                },
             ]],
             emptyMessage: "没有符合条件的记录",
             toolbar: [{
                 iconCls: 'hk-icon-edit',
                 handler: add,
-                text: "添加收货地址",
+                text: "增加原因",
             }]
         });
 
@@ -103,7 +85,7 @@
         function add() {
             $.createOnlyDiv("dialog-add");
             $("#dialog-add").dialog({
-                title: '【增加收货地址】',
+                title: '【增加原因】',
                 width: 380,
                 height: 220,
                 closed: false,
@@ -117,16 +99,12 @@
                         var addessForm = $("#dialog-add").find("form[name=addessForm]");
                         if (addessForm.form("validate")) {
                             $.ajax({
-                                url: '/manage/addess/add',
+                                url: '/manage/cancelReason/add',
                                 type: "post",
                                 data: addessForm.serializeJson(),
                                 succ: function (data) {
                                     $("#dialog-add").dialog("destroy");
-                                    if (data.message) {
-                                        $.messager.alert("【消息通知】", "添加成功", "info");
-                                    } else {
-                                        $.messager.alert("【消息通知】", "操作成功!", "OK");
-                                    }
+                                    $.messager.alert("【消息通知】", "添加成功", "info");
                                     $("#dg").datagrid("reload");
                                 }
                             })
@@ -140,47 +118,32 @@
                 }],
                 onOpen: function () {
                     var that = $(this);
-                    that.find("input[name=name]").validatebox({
+                    that.find("textarea[name=reason]").validatebox({
                         required: true,
-                        missingMessage: "地址不可为空",
+                        missingMessage: "原因不可为空",
                         validateOnCreate: false
                     })
-
-
                 }
             })
         }
-
-
     })
-    function changStatus(id, status) {
-        $.messager.confirm("提示", "确定" + (status == "0" ? "启用" : "禁用") + "该地址吗？", function (r) {
-            if (r) {
-                $.ajax({
-                    url: "/manage/addess/changeStatus",
-                    type: "post",
-                    data: {"id": id},
-                    succ: function (res) {
-                        $.messager.alert("提示", (status == "0" ? "启用" : "禁用") + "成功", "info");
-                        $("#dg").datagrid("reload");
-                    }
-                })
-            }
-        })
-    }
+
 </script>
 <script id="categoryTemplate" type="text/template">
     <div class="categoryPanel">
         <form name="addessForm">
             <table class="inputTable" border="0">
                 <tr>
-                    <td class="text-right">地址:</td>
-                    <td><input type="text" name="name"/>
+                    <td class="text-right">原因:</td>
+                    <td><textarea  name="reason" style="width: 280px" rows="3"></textarea>
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right">状态:</td>
-                    <td><label><input type="checkbox" checked="checked" value="1" name="status"/>是否启用</label>
+                    <td class="text-right">类型:</td>
+                    <td><select name="type">
+                        <option value="1">管理员使用</option>
+                        <option value="0">用户使用</option>
+                    </select>
                     </td>
                 </tr>
             </table>
